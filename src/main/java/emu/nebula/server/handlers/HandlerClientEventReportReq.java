@@ -1,0 +1,16 @@
+package emu.nebula.server.handlers;
+
+import emu.nebula.net.NetHandler;
+import emu.nebula.net.NetMsgId;
+import emu.nebula.net.HandlerId;
+import emu.nebula.net.GameSession;
+
+@HandlerId(NetMsgId.client_event_report_req)
+public class HandlerClientEventReportReq extends NetHandler {
+
+    @Override
+    public byte[] handle(GameSession session, byte[] message) throws Exception {
+        return this.encodeMsg(NetMsgId.client_event_report_succeed_ack);
+    }
+
+}

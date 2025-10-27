@@ -1,0 +1,128 @@
+package emu.nebula.net;
+
+import java.security.MessageDigest;
+import java.util.Base64;
+
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
+
+import emu.nebula.Nebula;
+import emu.nebula.game.GameContext;
+import emu.nebula.game.account.Account;
+import emu.nebula.game.account.AccountHelper;
+import emu.nebula.game.player.Player;
+import emu.nebula.util.AeadHelper;
+import lombok.Getter;
+import us.hebi.quickbuf.RepeatedByte;
+
+@Getter
+public class GameSession {
+    private String token;
+    private Account account;
+    private Player player;
+    
+    // Crypto
+    private byte[] clientPublicKey;
+    private byte[] serverPublicKey;
+    private byte[] serverPrivateKey;
+    private byte[] key;
+    
+    //
+    private long lastActiveTime;
+    
+    public GameSession() {
+        this.updateLastActiveTime();
+    }
+    
+    public void setPlayer(Player player) {
+        this.player = player;
+        this.player.addSession(this);
+    }
+    
+    public void clearPlayer(GameContext context) {
+        // Sanity check
+        if (this.player == null) {
+            return;
+        }
+        
+        // Clear player
+        var player = this.player;
+        this.player = null;
+        
+        // Remove session from player
+        player.removeSession(this);
+        
+        // Clean up from player module
+        if (!player.hasSessions()) {
+            context.getPlayerModule().removeFromCache(player);
+        }
+    }
+
+    public boolean hasPlayer() {
+        return this.player != null;
+    }
+
+    public void setClientKey(RepeatedByte key) {
+        this.clientPublicKey = key.toArray();
+    }
+    
+    public void generateServerKey() {
+        var pair = AeadHelper.generateECDHKEyPair();
+        
+        this.serverPrivateKey = ((ECPrivateKeyParameters) pair.getPrivate()).getD().toByteArray();
+        this.serverPublicKey = ((ECPublicKeyParameters) pair.getPublic()).getQ().getEncoded(false);
+    }
+    
+    public void calculateKey() {
+        this.key = AeadHelper.generateKey(clientPublicKey, serverPublicKey, serverPrivateKey);
+    }
+    
+    public String generateToken() {
+        String temp = System.currentTimeMillis() + ":" +  AeadHelper.generateBytes(64).toString();
+        
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
+            byte[] bytes = md.digest(temp.getBytes());
+            
+            this.token = Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            this.token = Base64.getEncoder().encodeToString(temp.getBytes());
+        }
+        
+        return this.token;
+    }
+    
+    public boolean login(String loginToken) {
+        // Sanity check
+        if (this.account != null) {
+            return false;
+        }
+        
+        // Get account
+        this.account = AccountHelper.getAccountByLoginToken(loginToken);
+        
+        if (account == null) {
+            return false;
+        }
+        
+        // Note: We should cache players in case multiple sessions try to login to the same player at the time
+        // Get player by account
+        var player = Nebula.getGameContext().getPlayerModule().getPlayerByAccount(account);
+        
+        // Skip intro
+        if (player == null && Nebula.getConfig().getServerOptions().skipIntro) {
+            player = Nebula.getGameContext().getPlayerModule().createPlayer(this, "Test", false);
+        }
+        
+        // Set player
+        if (player != null) {
+            this.setPlayer(player);
+        }
+        
+        return true;
+    }
+    
+    public void updateLastActiveTime() {
+        this.lastActiveTime = System.currentTimeMillis();
+    }
+}
