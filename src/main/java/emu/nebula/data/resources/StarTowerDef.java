@@ -14,4 +14,14 @@ public class StarTowerDef extends BaseDef {
     public int getId() {
         return Id;
     }
+
+    public int getMaxFloor(int stage) {
+        int index = stage - 1;
+        
+        if (index < 0 || index >= this.FloorNum.length) {
+            return 0;
+        }
+        
+        return this.FloorNum[index];
+    }
 }

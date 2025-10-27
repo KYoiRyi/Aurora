@@ -14,6 +14,7 @@ import lombok.Getter;
 public class StarTowerManager extends PlayerManager implements GameDatabaseObject {
     @Id
     private int uid;
+    private int lastBuildId;
     
     private transient StarTowerInstance instance;
     
@@ -27,6 +28,10 @@ public class StarTowerManager extends PlayerManager implements GameDatabaseObjec
         this.uid = player.getUid();
         
         this.save();
+    }
+    
+    public int getNextBuildId() {
+        return ++this.lastBuildId;
     }
     
     public StarTowerInstance apply(StarTowerApplyReq req) {
@@ -47,5 +52,15 @@ public class StarTowerManager extends PlayerManager implements GameDatabaseObjec
         
         // Success
         return this.instance;
+    }
+
+    public StarTowerInstance giveUp() {
+        var instance = this.instance;
+        
+        if (instance != null) {
+            this.instance = null;
+        }
+        
+        return instance;
     }
 }
