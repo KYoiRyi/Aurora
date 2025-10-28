@@ -5,6 +5,7 @@ import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Indexed;
 import emu.nebula.data.GameData;
 import emu.nebula.database.GameDatabaseObject;
+import emu.nebula.proto.Public.ItemTpl;
 import emu.nebula.proto.PublicStarTower.BuildPotential;
 import emu.nebula.proto.PublicStarTower.StarTowerBuildBrief;
 import emu.nebula.proto.PublicStarTower.StarTowerBuildDetail;
@@ -28,9 +29,10 @@ public class StarTowerBuild implements GameDatabaseObject {
     private boolean preference;
     private int score;
     
-    private Int2IntMap chars;
+    private int[] charIds;
     private int[] discIds;
     
+    private Int2IntMap charPots;
     private Int2IntMap potentials;
     private Int2IntMap subNoteSkills;
     
@@ -43,20 +45,21 @@ public class StarTowerBuild implements GameDatabaseObject {
         this.uid = Snowflake.newUid();
         this.playerUid = instance.getPlayer().getUid();
         this.name = "";
+        this.charPots = new Int2IntOpenHashMap();
         this.potentials = new Int2IntOpenHashMap();
         this.subNoteSkills = new Int2IntOpenHashMap();
+        
+        // Characters
+        this.charIds = instance.getDiscs().stream()
+                .filter(d -> d.getId() > 0)
+                .mapToInt(d -> d.getId())
+                .toArray();
         
         // Discs
         this.discIds = instance.getDiscs().stream()
                 .filter(d -> d.getId() > 0)
                 .mapToInt(d -> d.getId())
                 .toArray();
-        
-        // Characters
-        this.chars = new Int2IntOpenHashMap();
-        
-        instance.getChars().stream()
-                .forEach(c -> this.getChars().put(c.getId(), 0));
         
         // Add potentials
         for (int id : instance.getPotentials()) {
@@ -67,7 +70,7 @@ public class StarTowerBuild implements GameDatabaseObject {
             var potentialData = GameData.getPotentialDataTable().get(id);
             if (potentialData != null) {
                 int charId = potentialData.getCharId();
-                this.getChars().put(charId, this.getChars().get(charId) + 1);
+                this.getCharPots().put(charId, this.getCharPots().get(charId) + 1);
             }
         }
     }
@@ -92,10 +95,10 @@ public class StarTowerBuild implements GameDatabaseObject {
                 .addAllDiscIds(this.getDiscIds());
         
         // Add characters
-        for (var character : this.getChars().int2IntEntrySet()) {
+        for (int charId : this.getCharIds()) {
             var charProto = TowerBuildChar.newInstance()
-                    .setCharId(character.getIntKey())
-                    .setPotentialCnt(character.getIntValue());
+                    .setCharId(charId)
+                    .setPotentialCnt(this.getCharPots().get(charId));
             
             proto.addChars(charProto);
         }
@@ -106,12 +109,22 @@ public class StarTowerBuild implements GameDatabaseObject {
     public StarTowerBuildDetail toDetailProto() {
         var proto = StarTowerBuildDetail.newInstance();
         
+        // Potentials
         for (var entry : this.getPotentials().int2IntEntrySet()) {
             var potential = BuildPotential.newInstance()
                     .setPotentialId(entry.getIntKey())
                     .setLevel(entry.getIntValue());
             
             proto.getMutablePotentials().add(potential);
+        }
+        
+        // Sub note skills
+        for (var entry : this.getSubNoteSkills().int2IntEntrySet()) {
+            var skill = ItemTpl.newInstance()
+                    .setTid(entry.getIntKey())
+                    .setQty(entry.getIntValue());
+            
+            proto.addSubNoteSkills(skill);
         }
         
         return proto;
