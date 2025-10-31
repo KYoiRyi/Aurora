@@ -14,6 +14,7 @@ import emu.nebula.command.CommandManager;
 import emu.nebula.data.ResourceLoader;
 import emu.nebula.database.DatabaseManager;
 import emu.nebula.game.GameContext;
+import emu.nebula.net.PacketHelper;
 import emu.nebula.server.HttpServer;
 import emu.nebula.util.Handbook;
 import emu.nebula.util.JsonUtils;
@@ -78,6 +79,8 @@ public class Nebula {
             if (generateHandbook) {
                 Handbook.generate();
             }
+            // Cache proto methods
+            PacketHelper.cacheProtos();
         }
 
         try {

@@ -1,10 +1,45 @@
 package emu.nebula.net;
 
+import org.reflections.Reflections;
+
+import com.esotericsoftware.reflectasm.MethodAccess;
+
+import emu.nebula.Nebula;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.SneakyThrows;
 import us.hebi.quickbuf.ProtoMessage;
 import us.hebi.quickbuf.ProtoSink;
 
 public class PacketHelper {
+    private static Object2IntMap<Class<?>> methodIndexCache = new Object2IntOpenHashMap<>();
+    
+    public static void cacheProtos() {
+        var classes = new Reflections(Nebula.class.getPackage().getName()).getSubTypesOf(ProtoMessage.class);
+        
+        for (var cls : classes) {
+            try {
+                var access = MethodAccess.get(cls);
+                int index = access.getIndex("setNextPackage");
+                methodIndexCache.put(cls, index);
+            } catch (Exception e) {
+                
+            }
+        }
+        
+        Nebula.getLogger().info("Cached " + methodIndexCache.size() + " proto methods.");
+    }
+    
+    public static boolean hasNextPackageMethod(Object obj) {
+        return methodIndexCache.containsKey(obj.getClass());
+    }
+    
+    public static void setNextPackage(ProtoMessage<?> proto, byte[] data) {
+        int index = methodIndexCache.getInt(proto.getClass());
+        MethodAccess.get(proto.getClass()).invoke(proto, index, data);
+    }
+    
+    // Packet encoding
 
     public static byte[] encodeMsg(int msgId, byte[] packet) {
         // Create data array

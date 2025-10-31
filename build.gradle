@@ -76,6 +76,7 @@ dependencies {
 
     implementation group: 'it.unimi.dsi', name: 'fastutil-core', version: '8.5.18'
     implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
+    implementation group: 'com.esotericsoftware', name: 'reflectasm', version: '1.11.9'
 
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
     implementation group: 'us.hebi.quickbuf', name: 'quickbuf-runtime', version: '1.4'
