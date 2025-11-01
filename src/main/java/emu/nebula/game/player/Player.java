@@ -24,6 +24,7 @@ import emu.nebula.net.GameSession;
 import emu.nebula.proto.PlayerData.DictionaryEntry;
 import emu.nebula.proto.PlayerData.DictionaryTab;
 import emu.nebula.proto.PlayerData.PlayerInfo;
+import emu.nebula.proto.Public.Energy;
 import emu.nebula.proto.Public.NewbieInfo;
 import emu.nebula.proto.Public.QuestType;
 import emu.nebula.proto.Public.Story;
@@ -57,6 +58,7 @@ public class Player implements GameDatabaseObject {
     private int exp;
     
     private int energy;
+    private long energyLastUpdate;
    
     private int[] boards;
     private IntSet headIcons;
@@ -96,6 +98,7 @@ public class Player implements GameDatabaseObject {
         
         // Set basic info
         this.accountUid = account.getUid();
+        this.createTime = Nebula.getCurrentTime();
         this.name = name;
         this.signature = "";
         this.gender = gender;
@@ -105,10 +108,10 @@ public class Player implements GameDatabaseObject {
         this.titleSuffix = 2;
         this.level = 1;
         this.energy = 240;
+        this.energyLastUpdate = this.createTime;
         this.boards = new int[] {410301};
         this.headIcons = new IntOpenHashSet();
         this.titles = new IntOpenHashSet();
-        this.createTime = Nebula.getCurrentTime();
         
         // Add starter characters
         this.getCharacters().addCharacter(103);
@@ -304,21 +307,77 @@ public class Player implements GameDatabaseObject {
         
         return changes;
     }
-
-    public PlayerChangeInfo consumeEnergy(int amount, PlayerChangeInfo changes) {
-        // Check if changes is null
-        if (changes == null) {
-            changes = new PlayerChangeInfo();
+    
+    // Energy
+    
+    public int getEnergy() {
+        // Cache time
+        long time = Nebula.getCurrentTime();
+        
+        // Calculate time diff
+        double diff = time - this.energyLastUpdate;
+        long bonusEnergy = (int) Math.floor(diff / GameConstants.ENERGY_REGEN_TIME);
+        
+        if (this.energy < GameConstants.MAX_ENERGY) {
+            this.energy = Math.min(this.energy + (int) bonusEnergy, GameConstants.MAX_ENERGY);
+            this.energyLastUpdate = (bonusEnergy * GameConstants.ENERGY_REGEN_TIME) + this.energyLastUpdate;
+        } else {
+            this.energyLastUpdate = time;
         }
         
-        // Sanity
-        if (amount <= 0) {
-            return changes;
-        }
-        
-        // TODO
-        return changes;
+        return this.energy;
     }
+    
+    public PlayerChangeInfo addEnergy(int amount, PlayerChangeInfo change) {
+        // Sanity check
+        if (amount <= 0) {
+            return change == null ? new PlayerChangeInfo() : change;
+        }
+        
+        // Complete
+        return modifyEnergy(amount, change);
+    }
+    
+    public PlayerChangeInfo consumeEnergy(int amount, PlayerChangeInfo change) {
+        // Sanity check
+        if (amount <= 0) {
+            return change == null ? new PlayerChangeInfo() : change;
+        }
+        
+        // Complete
+        return modifyEnergy(-amount, change);
+    }
+    
+    private PlayerChangeInfo modifyEnergy(int amount, PlayerChangeInfo change) {
+        // Check if changes is null
+        if (change == null) {
+            change = new PlayerChangeInfo();
+        }
+        
+        // Update energy
+        this.getEnergy();
+        
+        // Remove energy
+        this.energy = Math.max(this.energy + amount, 0);
+        
+        // Save to database
+        Nebula.getGameDatabase().update(
+                this, 
+                this.getUid(), 
+                "energy", 
+                this.getEnergy(), 
+                "energyLastUpdate", 
+                this.getEnergyLastUpdate()
+        );
+        
+        // Add to change
+        change.add(this.getEnergyProto());
+        
+        // Complete
+        return change;
+    }
+    
+    //
     
     public void sendMessage(String string) {
         // Empty
@@ -343,9 +402,6 @@ public class Player implements GameDatabaseObject {
     }
     
     public void onLoad() {
-        // Debug 
-        this.energy = 240;
-        
         // Load from database
         this.getCharacters().loadFromDatabase();
         this.getInventory().loadFromDatabase();
@@ -380,12 +436,7 @@ public class Player implements GameDatabaseObject {
             .setCur(this.getLevel())
             .setLastExp(this.getExp());
         
-        proto.getMutableEnergy()
-            .getMutableEnergy()
-                .setUpdateTime(Nebula.getCurrentTime())
-                .setNextDuration(60)
-                .setPrimary(this.getEnergy())
-                .setIsPrimary(true);
+        proto.getMutableEnergy().setEnergy(this.getEnergyProto());
         
         // Add characters/discs/res/items
         for (var character : getCharacters().getCharacterCollection()) {
@@ -492,6 +543,18 @@ public class Player implements GameDatabaseObject {
         proto.getMutableQuests();
         proto.getMutableAgent();
         proto.getMutablePhone();
+        
+        return proto;
+    }
+    
+    public Energy getEnergyProto() {
+        long nextDuration = Math.max(GameConstants.ENERGY_REGEN_TIME - (Nebula.getCurrentTime() - getEnergyLastUpdate()), 1);
+        
+        var proto = Energy.newInstance()
+                .setUpdateTime(this.getEnergyLastUpdate())
+                .setNextDuration(nextDuration)
+                .setPrimary(this.getEnergy())
+                .setIsPrimary(true);
         
         return proto;
     }

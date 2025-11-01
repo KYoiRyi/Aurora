@@ -12,7 +12,6 @@ import emu.nebula.game.player.PlayerManager;
 import emu.nebula.proto.PlayerData.PlayerInfo;
 import emu.nebula.proto.Public.CharGemInstance;
 import emu.nebula.proto.Public.DailyInstance;
-import emu.nebula.proto.Public.Energy;
 import emu.nebula.proto.Public.RegionBossLevel;
 import emu.nebula.proto.Public.SkillInstance;
 import emu.nebula.proto.Public.WeekBossLevel;
@@ -106,11 +105,7 @@ public class InstanceManager extends PlayerManager implements GameDatabaseObject
         
         // Log energy
         if (data.getEnergyConsume() > 0) {
-            var energyProto = Energy.newInstance()
-                    .setPrimary(getPlayer().getEnergy())
-                    .setUpdateTime(Nebula.getCurrentTime() + 600);
-            
-            changes.add(energyProto);
+            changes.add(this.getPlayer().getEnergyProto());
         }
         
         // Set extra data
