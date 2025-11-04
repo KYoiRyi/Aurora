@@ -16,17 +16,17 @@ public class HandlerStarTowerBuildDeleteReq extends NetHandler {
         // Parse request
         var req = StarTowerBuildDeleteReq.parseFrom(message);
         
-        //
-        var changes = new PlayerChangeInfo();
+        // Player change info
+        var change = new PlayerChangeInfo();
         
         // Delete
         for (var id : req.getBuildIds()) {
-            session.getPlayer().getStarTowerManager().deleteBuild(id, changes);
+            session.getPlayer().getStarTowerManager().deleteBuild(id, change);
         }
         
         // Build response
         var rsp = StarTowerBuildDeleteResp.newInstance()
-                .setChange(changes.toProto());
+                .setChange(change.toProto());
                 
         // Encode packet
         return session.encodeMsg(NetMsgId.star_tower_build_delete_succeed_ack, rsp);

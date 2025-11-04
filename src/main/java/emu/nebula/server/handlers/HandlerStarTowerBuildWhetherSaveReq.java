@@ -16,18 +16,19 @@ public class HandlerStarTowerBuildWhetherSaveReq extends NetHandler {
         var req = StarTowerBuildWhetherSaveReq.parseFrom(message);
         
         // Save build
-        boolean result = session.getPlayer().getStarTowerManager().saveBuild(
+        var change = session.getPlayer().getStarTowerManager().saveBuild(
                 req.getDelete(), 
                 req.getBuildName(), 
                 req.getLock()
         );
         
-        if (!result) {
+        if (change == null) {
             return session.encodeMsg(NetMsgId.star_tower_build_whether_save_failed_ack);
         }
         
         // Build response
-        var rsp = StarTowerBuildWhetherSaveResp.newInstance();
+        var rsp = StarTowerBuildWhetherSaveResp.newInstance()
+                .setChange(change.toProto());
         
         return session.encodeMsg(NetMsgId.star_tower_build_whether_save_succeed_ack, rsp);
     }

@@ -92,11 +92,27 @@ public class StarTowerManager extends PlayerManager implements GameDatabaseObjec
         return game;
     }
     
-    public boolean saveBuild(boolean delete, String name, boolean lock) {
+    // Build
+    
+    private PlayerChangeInfo dismantleBuild(StarTowerBuild build, PlayerChangeInfo change) {
+        // Calculate quanity of tickets from record score
+        int count = (int) Math.floor(build.getScore() / 100);
+        
+        // Add journey tickets
+        this.getPlayer().getInventory().addItem(12, count, change);
+        
+        // Success
+        return change;
+    }
+    
+    public PlayerChangeInfo saveBuild(boolean delete, String name, boolean lock) {
         // Sanity check
         if (this.getLastBuild() == null) {
-            return false;
+            return null;
         }
+        
+        // Create player change info
+        var change = new PlayerChangeInfo();
         
         // Cache build and clear reference
         var build = this.lastBuild;
@@ -104,12 +120,12 @@ public class StarTowerManager extends PlayerManager implements GameDatabaseObjec
         
         // Check if the player wants this build or not
         if (delete) {
-            return true;
+            return this.dismantleBuild(build, change);
         }
         
         // Check limit
         if (this.getBuilds().size() >= 50) {
-            return false;
+            return null;
         }
         
         // Add to builds
@@ -118,25 +134,31 @@ public class StarTowerManager extends PlayerManager implements GameDatabaseObjec
         // Save build to database
         build.save();
         
-        //
-        return true;
+        // Success
+        return change;
     }
     
-    // TODO give rewards to player
-    public PlayerChangeInfo deleteBuild(long buildId, PlayerChangeInfo changes) {
+    public PlayerChangeInfo deleteBuild(long buildId, PlayerChangeInfo change) {
         // Create change info
-        if (changes == null) {
-            changes = new PlayerChangeInfo();
+        if (change == null) {
+            change = new PlayerChangeInfo();
         }
         
         // Get build
         var build = this.getBuilds().remove(buildId);
         
-        if (build != null) {
-            build.delete();
+        if (build == null) {
+            return change;
         }
         
-        return changes;
+        // Delete
+        build.delete();
+        
+        // Add journey tickets
+        this.dismantleBuild(build, change);
+        
+        // Success
+        return change;
     }
     
     // Database
