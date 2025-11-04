@@ -558,8 +558,35 @@ public class Inventory extends PlayerManager implements GameDatabaseObject {
         return change;
     }
     
+    public PlayerChangeInfo buyItem(int currencyId, int currencyCount, ItemParamMap buyItems, int buyCount) {
+        return this.buyItem(currencyId, currencyCount, buyItems, buyCount, null);
+    }
+    
+    public PlayerChangeInfo buyItem(int currencyId, int currencyCount, ItemParamMap buyItems, int buyCount, PlayerChangeInfo change) {
+        // Player change info
+        if (change == null) {
+            change = new PlayerChangeInfo();
+        }
+        
+        // Make sure we have the currency
+        int cost = buyCount * currencyCount;
+        
+        if (!this.verifyItem(currencyId, cost)) {
+            return change;
+        }
+        
+        // Remove currency item
+        this.removeItem(currencyId, cost, change);
+        
+        // Add items
+        this.addItems(buyItems.mulitply(buyCount), change);
+        
+        // Success
+        return change.setSuccess(true);
+    }
+    
     public PlayerChangeInfo useItem(int id, int count, PlayerChangeInfo change) {
-        // Changes
+        // Player change info
         if (change == null) {
             change = new PlayerChangeInfo();
         }
@@ -597,7 +624,7 @@ public class Inventory extends PlayerManager implements GameDatabaseObject {
         }
         
         // Success
-        return change;
+        return change.setSuccess(true);
     }
     
     // Database
