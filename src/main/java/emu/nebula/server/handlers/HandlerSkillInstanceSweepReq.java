@@ -7,6 +7,7 @@ import emu.nebula.proto.SkillInstanceSweep.SkillInstanceSweepResp;
 import emu.nebula.proto.SkillInstanceSweep.SkillInstanceSweepRewards;
 import emu.nebula.net.HandlerId;
 import emu.nebula.data.GameData;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.skill_instance_sweep_req)
@@ -26,6 +27,7 @@ public class HandlerSkillInstanceSweepReq extends NetHandler {
         // Sweep
         var change = session.getPlayer().getInstanceManager().sweepInstance(
                 data,
+                QuestCondType.SkillInstanceClearTotal,
                 session.getPlayer().getInstanceManager().getSkillInstanceLog(),
                 0,
                 req.getTimes()

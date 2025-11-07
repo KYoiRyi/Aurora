@@ -46,6 +46,7 @@ public class GameSession {
     public synchronized void setPlayer(Player player) {
         this.player = player;
         this.player.setSession(this);
+        this.player.onLogin();
     }
     
     public synchronized void clearPlayer() {

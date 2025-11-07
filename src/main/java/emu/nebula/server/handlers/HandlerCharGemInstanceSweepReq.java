@@ -7,6 +7,7 @@ import emu.nebula.proto.CharGemInstanceSweep.CharGemInstanceSweepResp;
 import emu.nebula.proto.CharGemInstanceSweep.CharGemInstanceSweepReward;
 import emu.nebula.net.HandlerId;
 import emu.nebula.data.GameData;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.char_gem_instance_sweep_req)
@@ -26,6 +27,7 @@ public class HandlerCharGemInstanceSweepReq extends NetHandler {
         // Sweep
         var change = session.getPlayer().getInstanceManager().sweepInstance(
                 data,
+                QuestCondType.CharGemInstanceClearTotal,
                 session.getPlayer().getInstanceManager().getCharGemLog(),
                 0,
                 req.getTimes()

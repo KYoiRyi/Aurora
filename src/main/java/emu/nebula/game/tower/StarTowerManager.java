@@ -8,6 +8,7 @@ import emu.nebula.database.GameDatabaseObject;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.proto.StarTowerApply.StarTowerApplyReq;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -72,6 +73,9 @@ public class StarTowerManager extends PlayerManager implements GameDatabaseObjec
         
         // Create game
         this.game = new StarTowerGame(this, data, formation, req);
+        
+        // Trigger quest
+        this.getPlayer().getQuestManager().triggerQuest(QuestCondType.TowerEnterFloor, 1);
         
         // Success
         return this.game;

@@ -9,6 +9,7 @@ import emu.nebula.database.GameDatabaseObject;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.proto.PlayerData.PlayerInfo;
 import emu.nebula.proto.Public.CharGemInstance;
 import emu.nebula.proto.Public.DailyInstance;
@@ -75,7 +76,7 @@ public class InstanceManager extends PlayerManager implements GameDatabaseObject
         Nebula.getGameDatabase().update(this, this.getUid(), logName + "." + id, newStar);
     }
     
-    public PlayerChangeInfo settleInstance(InstanceData data, Int2IntMap log, String logName, int star) {
+    public PlayerChangeInfo settleInstance(InstanceData data, QuestCondType questCondition, Int2IntMap log, String logName, int star) {
         // Calculate settle data
         var settleData = new InstanceSettleData();
         
@@ -104,6 +105,10 @@ public class InstanceManager extends PlayerManager implements GameDatabaseObject
             
             // Log
             this.saveInstanceLog(log, logName, data.getId(), star);
+            
+            // Quest triggers
+            this.getPlayer().getQuestManager().triggerQuest(questCondition, 1);
+            this.getPlayer().getQuestManager().triggerQuest(QuestCondType.BattleTotal, 1);
         }
         
         // Set extra data
@@ -113,7 +118,7 @@ public class InstanceManager extends PlayerManager implements GameDatabaseObject
         return change.setSuccess(true);
     }
     
-    public PlayerChangeInfo sweepInstance(InstanceData data, Int2IntMap log, int rewardType, int count) {
+    public PlayerChangeInfo sweepInstance(InstanceData data, QuestCondType questCondition, Int2IntMap log, int rewardType, int count) {
         // Sanity check count
         if (count <= 0) {
             return null;
@@ -150,6 +155,10 @@ public class InstanceManager extends PlayerManager implements GameDatabaseObject
         // Awards
         getPlayer().getInventory().addItem(GameConstants.EXP_ITEM_ID, energyCost, change);
         getPlayer().getInventory().addItems(data.getRewards(rewardType).mulitply(count), change);
+        
+        // Quest triggers
+        this.getPlayer().getQuestManager().triggerQuest(questCondition, count);
+        this.getPlayer().getQuestManager().triggerQuest(QuestCondType.BattleTotal, count);
         
         // Success
         return change.setSuccess(true);

@@ -17,6 +17,7 @@ import emu.nebula.database.GameDatabaseObject;
 import emu.nebula.game.inventory.ItemParamMap;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.NetMsgId;
 import emu.nebula.proto.Notify.Skin;
 import emu.nebula.proto.Notify.SkinChange;
@@ -117,6 +118,7 @@ public class Character implements GameDatabaseObject {
     public void addExp(int amount) {
         // Setup
         int expRequired = this.getMaxExp();
+        int oldLevel = this.getLevel();
 
         // Add exp
         this.exp += amount;
@@ -132,6 +134,12 @@ public class Character implements GameDatabaseObject {
         // Clamp exp
         if (this.getLevel() >= this.getMaxLevel()) {
             this.exp = 0;
+        }
+        
+        // Check if we leveled up
+        if (this.level > oldLevel) {
+            // Trigger quest
+            this.getPlayer().getQuestManager().triggerQuest(QuestCondType.CharacterUpTotal, this.level - oldLevel);
         }
         
         // Save to database

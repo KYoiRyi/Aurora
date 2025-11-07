@@ -2,7 +2,9 @@ package emu.nebula.server.handlers;
 
 import emu.nebula.net.NetHandler;
 import emu.nebula.net.NetMsgId;
+import emu.nebula.proto.Public.Nil;
 import emu.nebula.net.HandlerId;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.client_event_report_req)
@@ -10,7 +12,11 @@ public class HandlerClientEventReportReq extends NetHandler {
 
     @Override
     public byte[] handle(GameSession session, byte[] message) throws Exception {
-        return session.encodeMsg(NetMsgId.client_event_report_succeed_ack);
+        // Interact
+        session.getPlayer().getQuestManager().triggerQuest(QuestCondType.ClientReport, 1);
+        
+        // Encode response
+        return session.encodeMsg(NetMsgId.client_event_report_succeed_ack, Nil.newInstance());
     }
 
 }

@@ -13,6 +13,7 @@ public class HandlerGachaNewbieInfoReq extends NetHandler {
     @Override
     public byte[] handle(GameSession session, byte[] message) throws Exception {
         var rsp = GachaNewbieInfoResp.newInstance();
+        
         var info = GachaNewbieInfo.newInstance()
                 .setId(5)
                 .setReceive(true);

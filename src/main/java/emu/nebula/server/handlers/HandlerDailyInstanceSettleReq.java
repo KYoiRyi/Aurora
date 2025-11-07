@@ -7,6 +7,7 @@ import emu.nebula.proto.DailyInstanceSettle.DailyInstanceSettleResp;
 import emu.nebula.net.HandlerId;
 import emu.nebula.data.GameData;
 import emu.nebula.game.instance.InstanceSettleData;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.daily_instance_settle_req)
@@ -29,6 +30,7 @@ public class HandlerDailyInstanceSettleReq extends NetHandler {
         // Settle instance
         var changes = player.getInstanceManager().settleInstance(
                 data,
+                QuestCondType.DailyInstanceClearTotal,
                 player.getInstanceManager().getDailyInstanceLog(),
                 "dailyInstanceLog",
                 req.getStar()

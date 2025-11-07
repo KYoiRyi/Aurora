@@ -17,6 +17,7 @@ import emu.nebula.game.gacha.GachaManager;
 import emu.nebula.game.instance.InstanceManager;
 import emu.nebula.game.inventory.Inventory;
 import emu.nebula.game.mail.Mailbox;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.game.quest.QuestManager;
 import emu.nebula.game.scoreboss.ScoreBossManager;
 import emu.nebula.game.story.StoryManager;
@@ -366,8 +367,14 @@ public class Player implements GameDatabaseObject {
             return change == null ? new PlayerChangeInfo() : change;
         }
         
+        // Consume energy
+        change = modifyEnergy(-amount, change);
+        
+        // Trigger quest
+        this.getQuestManager().triggerQuest(QuestCondType.EnergyDeplete, amount);
+        
         // Complete
-        return modifyEnergy(-amount, change);
+        return change;
     }
     
     private PlayerChangeInfo modifyEnergy(int amount, PlayerChangeInfo change) {
@@ -443,6 +450,10 @@ public class Player implements GameDatabaseObject {
         this.instanceManager = this.loadManagerFromDatabase(InstanceManager.class);
         this.storyManager = this.loadManagerFromDatabase(StoryManager.class);
         this.questManager = this.loadManagerFromDatabase(QuestManager.class);
+    }
+    
+    public void onLogin() {
+        this.getQuestManager().triggerQuest(QuestCondType.LoginTotal, 1);
     }
     
     // Next packages
@@ -554,6 +565,10 @@ public class Player implements GameDatabaseObject {
         var quests = proto.getMutableQuests();
         for (var quest : this.getQuestManager().getQuests().values()) {
             quests.addList(quest.toProto());
+        }
+        
+        for (int id : this.getQuestManager().getClaimedActiveIds()) {
+            proto.addDailyActiveIds(id);
         }
         
         // Add dictionary tabs

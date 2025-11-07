@@ -520,7 +520,7 @@ public class StarTowerGame {
         if (this.roomType <= StarTowerRoomType.FinalBossRoom.getValue()) {
             var battleCase = new StarTowerCase(CaseType.Battle);
             battleCase.setSubNoteSkillNum(Utils.randomRange(1, 3));
-            
+
             this.addCase(room.getMutableCases(), battleCase);
         } else if (this.roomType == StarTowerRoomType.EventRoom.getValue()) {
             

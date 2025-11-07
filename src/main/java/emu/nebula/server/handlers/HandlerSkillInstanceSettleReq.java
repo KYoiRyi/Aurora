@@ -7,6 +7,7 @@ import emu.nebula.proto.SkillInstanceSettle.SkillInstanceSettleResp;
 import emu.nebula.net.HandlerId;
 import emu.nebula.data.GameData;
 import emu.nebula.game.instance.InstanceSettleData;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.skill_instance_settle_req)
@@ -29,6 +30,7 @@ public class HandlerSkillInstanceSettleReq extends NetHandler {
         // Settle instance
         var changes = player.getInstanceManager().settleInstance(
                 data,
+                QuestCondType.SkillInstanceClearTotal,
                 player.getInstanceManager().getSkillInstanceLog(),
                 "skillInstanceLog",
                 req.getStar()
@@ -42,7 +44,7 @@ public class HandlerSkillInstanceSettleReq extends NetHandler {
                 .setThreeStar(req.getStar() == 7)
                 .setChange(changes.toProto());
         
-        // Add reward items
+        // Add reward items to proto
         if (settleData.isWin()) {
             data.getRewards().toItemTemplateStream().forEach(rsp::addAwardItems);
             

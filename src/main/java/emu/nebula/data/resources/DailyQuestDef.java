@@ -4,11 +4,10 @@ import java.util.Arrays;
 
 import emu.nebula.data.BaseDef;
 import emu.nebula.data.ResourceType;
-import emu.nebula.data.ResourceType.LoadPriority;
 import lombok.Getter;
 
 @Getter
-@ResourceType(name = "DailyQuest.json", loadPriority = LoadPriority.LOW)
+@ResourceType(name = "DailyQuest.json")
 public class DailyQuestDef extends BaseDef {
     private int Id;
     private boolean Apear;

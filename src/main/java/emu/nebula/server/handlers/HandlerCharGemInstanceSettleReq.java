@@ -7,6 +7,7 @@ import emu.nebula.proto.CharGemInstanceSettle.CharGemInstanceSettleResp;
 import emu.nebula.net.HandlerId;
 import emu.nebula.data.GameData;
 import emu.nebula.game.instance.InstanceSettleData;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.char_gem_instance_settle_req)
@@ -29,6 +30,7 @@ public class HandlerCharGemInstanceSettleReq extends NetHandler {
         // Settle instance
         var changes = player.getInstanceManager().settleInstance(
                 data,
+                QuestCondType.CharGemInstanceClearTotal,
                 player.getInstanceManager().getCharGemLog(),
                 "charGemLog",
                 req.getStar()

@@ -7,6 +7,7 @@ import emu.nebula.proto.RegionBossLevelSettle.RegionBossLevelSettleResp;
 import emu.nebula.net.HandlerId;
 import emu.nebula.data.GameData;
 import emu.nebula.game.instance.InstanceSettleData;
+import emu.nebula.game.quest.QuestCondType;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.region_boss_level_settle_req)
@@ -29,6 +30,7 @@ public class HandlerRegionBossLevelSettleReq extends NetHandler {
         // Settle instance
         var changes = player.getInstanceManager().settleInstance(
                 data,
+                QuestCondType.RegionBossClearTotal,
                 player.getInstanceManager().getRegionBossLog(),
                 "regionBossLog",
                 req.getStar()
