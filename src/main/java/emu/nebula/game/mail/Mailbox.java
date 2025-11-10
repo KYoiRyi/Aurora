@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
-
 import emu.nebula.Nebula;
 import emu.nebula.database.GameDatabaseObject;
 import emu.nebula.game.player.Player;
@@ -70,8 +69,10 @@ public class Mailbox extends PlayerManager implements GameDatabaseObject, Iterab
         // Add to mail list
         this.list.add(mail);
         
-        // Set state
-        this.newState = true;
+        // Set new state only if player has a session connected
+        if (this.getPlayer().hasSession()) {
+            this.newState = true;
+        }
         
         // Save to database
         Nebula.getGameDatabase().update(this, getUid(), "lastMailId", this.getLastMailId());
@@ -209,6 +210,19 @@ public class Mailbox extends PlayerManager implements GameDatabaseObject, Iterab
         
         // Success
         return removed;
+    }
+    
+    public void sendWelcomeMail() {
+        var welcomeMail = Nebula.getConfig().getServerOptions().welcomeMail;
+        if (welcomeMail == null) return;
+        
+        var mail = new GameMail(welcomeMail.getTitle(), welcomeMail.getSender(), welcomeMail.getContent());
+        
+        for (var param : welcomeMail.getAttachments()) {
+            mail.addAttachment(param.getId(), param.getCount());
+        }
+        
+        this.sendMail(mail);
     }
 
     @Override

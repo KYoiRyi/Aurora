@@ -1,7 +1,9 @@
 package emu.nebula;
 
+import java.util.List;
 import java.util.Set;
 
+import emu.nebula.game.inventory.ItemParam;
 import lombok.Getter;
 
 @Getter
@@ -99,6 +101,7 @@ public class Config {
         public boolean skipIntro = false;
         public boolean unlockInstances = true;
         public int dailyResetHour = 0;
+        public WelcomeMail welcomeMail = new WelcomeMail();
     }
     
     @Getter
@@ -110,6 +113,26 @@ public class Config {
     public static class LogOptions {
         public boolean commands = true;
         public boolean packets = false;
+    }
+    
+    @Getter
+    public static class WelcomeMail {
+        public String title;
+        public String sender;
+        public String content;
+        public List<ItemParam> attachments;
+        
+        public WelcomeMail() {
+            this.title = "Welcome to a Nebula server";
+            this.sender = "Server";
+            this.content = "Welcome to Nebula! Please take these items as a starter gift.";
+            this.attachments = List.of(
+                new ItemParam(86009, 1),
+                new ItemParam(86003, 1),
+                new ItemParam(1, 1_000_000),
+                new ItemParam(2, 30_000)
+            );
+        }
     }
     
 }

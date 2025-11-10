@@ -95,7 +95,10 @@ public class PlayerModule extends GameContextModule {
         player.onLoad();
         player.save();
         
-        // Put in cache
+        // Send welcome mail
+        player.getMailbox().sendWelcomeMail();
+        
+        // Put in player cache
         this.addToCache(player);
         
         // Set player for session
