@@ -37,7 +37,7 @@ import emu.nebula.proto.Public.Story;
 import emu.nebula.proto.Public.WorldClass;
 import emu.nebula.proto.Public.WorldClassRewardState;
 import emu.nebula.proto.Public.Title;
-import emu.nebula.proto.Public.VampireSurvivorLevel;
+
 import lombok.Getter;
 import us.hebi.quickbuf.ProtoMessage;
 import us.hebi.quickbuf.RepeatedInt;
@@ -655,25 +655,6 @@ public class Player implements GameDatabaseObject {
         // Handbook
         proto.addHandbook(this.getCharacters().getCharacterHandbook());
         proto.addHandbook(this.getCharacters().getDiscHandbook());
-        
-        // Force unlock all monoliths
-        for (var towerData : GameData.getStarTowerDataTable()) {
-            proto.addRglPassedIds(towerData.getId());
-        }
-        
-        // Force unlock all vampire survivor records
-        var vsProto = proto.getMutableVampireSurvivorRecord();
-        
-        vsProto.getMutableSeason();
-        
-        for (var vsData : GameData.getVampireSurvivorDataTable()) {
-            var level = VampireSurvivorLevel.newInstance()
-                    .setId(vsData.getId())
-                    .setScore(0)
-                    .setPassed(true);
-            
-            vsProto.addRecords(level);
-        }
         
         // Extra
         proto.getMutableAgent();

@@ -15,6 +15,7 @@ import lombok.Getter;
 @ResourceType(name = "InfinityTowerLevel.json")
 public class InfinityTowerLevelDef extends BaseDef {
     private int Id;
+    private int DifficultyId;
     private String BaseAwardPreview;
     
     private transient List<InstanceRewardParam> rewards;

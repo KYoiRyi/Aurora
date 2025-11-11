@@ -1,6 +1,7 @@
 package emu.nebula.game.infinitytower;
 
 import emu.nebula.data.GameData;
+import emu.nebula.data.resources.InfinityTowerLevelDef;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
@@ -9,7 +10,9 @@ import lombok.Getter;
 
 @Getter
 public class InfinityTowerManager extends PlayerManager {
+    private InfinityTowerLevelDef levelData;
     private int levelId;
+    
     private long buildId;
     
     public InfinityTowerManager(Player player) {
@@ -28,6 +31,7 @@ public class InfinityTowerManager extends PlayerManager {
         }
         
         // Set level id
+        this.levelData = data;
         this.levelId = levelId;
         
         // Set build id
@@ -41,27 +45,30 @@ public class InfinityTowerManager extends PlayerManager {
 
     public PlayerChangeInfo settle(int value) {
         // Verify level data
-        var data = GameData.getInfinityTowerLevelDataTable().get(this.getLevelId());
-        if (data == null) {
+        if (this.getLevelData() == null) {
             return null;
         }
         
         // Init change info
         var change = new PlayerChangeInfo();
         
-        // TODO
+        // Check if the player has won or not TODO
         if (value != 1) {
+            // Player lost, so we return nothing
             return change;
         }
         
         // Calculate rewards
-        var rewards = data.generateRewards();
+        var rewards = this.getLevelData().generateRewards();
         
         // Add items
         this.getPlayer().getInventory().addItems(rewards, change);
         
         // Set in change info
         change.setExtraData(rewards);
+        
+        // Log in player progress
+        this.getPlayer().getProgress().addInfinityArenaLog(this.getLevelId());
         
         // Success
         return change.setSuccess(true);

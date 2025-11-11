@@ -10,9 +10,12 @@ import emu.nebula.proto.Public.CharGemInstance;
 import emu.nebula.proto.Public.DailyInstance;
 import emu.nebula.proto.Public.RegionBossLevel;
 import emu.nebula.proto.Public.SkillInstance;
+import emu.nebula.proto.Public.VampireSurvivorLevel;
 import emu.nebula.proto.Public.WeekBossLevel;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.Getter;
 
 @Getter
@@ -21,11 +24,20 @@ public class PlayerProgress extends PlayerManager implements GameDatabaseObject 
     @Id
     private int uid;
     
+    // Star Tower
+    private IntSet starTowerLog;
+    
+    // Instances
     private Int2IntMap dailyInstanceLog;
     private Int2IntMap regionBossLog;
     private Int2IntMap skillInstanceLog;
     private Int2IntMap charGemLog;
     private Int2IntMap weekBossLog;
+    
+    // Infinite Arena
+    private Int2IntMap infinityArenaLog;
+    
+    // Vampire Survivors TODO
 
     @Deprecated // Morphia only
     public PlayerProgress() {
@@ -37,6 +49,7 @@ public class PlayerProgress extends PlayerManager implements GameDatabaseObject 
         this.uid = player.getUid();
         
         // Star Tower
+        this.starTowerLog = new IntOpenHashSet();
         
         // Instances
         this.dailyInstanceLog = new Int2IntOpenHashMap();
@@ -46,11 +59,37 @@ public class PlayerProgress extends PlayerManager implements GameDatabaseObject 
         this.weekBossLog = new Int2IntOpenHashMap();
         
         // Infinity Arena
+        this.infinityArenaLog = new Int2IntOpenHashMap();
         
         // Vampire Survivor
         
         // Save to database
         this.save();
+    }
+    
+    public void addStarTowerLog(int id) {
+        // Sanity check
+        if (this.getStarTowerLog().contains(id)) {
+            return;
+        }
+        
+        // Add & Save to database
+        this.getStarTowerLog().add(id);
+        Nebula.getGameDatabase().addToList(this, this.getUid(), "starTowerLog", id);
+    }
+    
+    public void addInfinityArenaLog(int levelId) {
+        // Calculate arena id
+        int id = (int) Math.floor(levelId / 10000D);
+        
+        // Check highest clear
+        int highestClearId = this.getInfinityArenaLog().get(id);
+
+        // Add & Save to database
+        if (levelId > highestClearId) {
+            this.getInfinityArenaLog().put(id, levelId);
+            Nebula.getGameDatabase().update(this, this.getUid(), "infinityArenaLog." + id, levelId);
+        }
     }
     
     public void saveInstanceLog(Int2IntMap log, String logName, int id, int newStar) {
@@ -70,13 +109,23 @@ public class PlayerProgress extends PlayerManager implements GameDatabaseObject 
     // Proto
     
     public void toProto(PlayerInfo proto) {
-        // Init
-        int minStars = 0;
+        // Check if we want to unlock all instances
+        boolean unlockAll = Nebula.getConfig().getServerOptions().unlockInstances;
+        
+        // Star tower
+        if (unlockAll) {
+            // Force unlock all monoliths
+            for (var towerData : GameData.getStarTowerDataTable()) {
+                proto.addRglPassedIds(towerData.getId());
+            }
+        } else {
+            for (var towerId : this.getStarTowerLog()) {
+                proto.addRglPassedIds(towerId);
+            }
+        }
         
         // Simple hack to unlock all instances
-        if (Nebula.getConfig().getServerOptions().unlockInstances) {
-            minStars = 1;
-        }
+        int minStars = unlockAll ? 1 : 0;
         
         // Daily instance
         for (var data : GameData.getDailyInstanceDataTable()) {
@@ -129,6 +178,20 @@ public class PlayerProgress extends PlayerManager implements GameDatabaseObject 
                     .setFirst(this.getWeekBossLog().get(data.getId()) == 1);
             
             proto.addWeekBossLevels(p);
+        }
+        
+        // Force unlock all vampire survivor records
+        var vsProto = proto.getMutableVampireSurvivorRecord();
+        
+        vsProto.getMutableSeason();
+        
+        for (var vsData : GameData.getVampireSurvivorDataTable()) {
+            var level = VampireSurvivorLevel.newInstance()
+                    .setId(vsData.getId())
+                    .setScore(0)
+                    .setPassed(true);
+            
+            vsProto.addRecords(level);
         }
     }
 }

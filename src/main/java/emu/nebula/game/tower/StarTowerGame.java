@@ -630,6 +630,9 @@ public class StarTowerGame {
         // Mark change info
         settle.getMutableChange();
         
+        // Log victory
+        this.getManager().getPlayer().getProgress().addStarTowerLog(this.getId());
+        
         // Complete
         return rsp;
     }
