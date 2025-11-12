@@ -70,6 +70,18 @@ public class CharacterStorage extends PlayerManager {
         return this.getCharacters().values();
     }
     
+    public int getNewPhoneMessageCount() {
+        int count = 0;
+        
+        for (var character : this.getCharacterCollection()) {
+            if (character.getContact().hasNew()) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+    
     public HandbookInfo getCharacterHandbook() {
         var bitset = new Bitset();
         

@@ -49,7 +49,7 @@ public class Character implements GameDatabaseObject {
     private int skin;
     private int[] skills;
     private Bitset talents;
-    
+    private CharacterContact contact;
     private long createTime;
     
     @Deprecated // Morphia only!
@@ -66,11 +66,13 @@ public class Character implements GameDatabaseObject {
         this.playerUid = player.getUid();
         this.charId = data.getId();
         this.data = data;
+        this.createTime = Nebula.getCurrentTime();
+        
         this.level = 1;
         this.skin = data.getDefaultSkinId();
         this.skills = new int[] {1, 1, 1, 1, 1};
         this.talents = new Bitset();
-        this.createTime = Nebula.getCurrentTime();
+        this.contact = new CharacterContact(this);
     }
     
     public void setPlayer(Player player) {
@@ -78,8 +80,20 @@ public class Character implements GameDatabaseObject {
     }
 
     public void setData(CharacterDef data) {
-        if (this.data == null && data.getId() == this.getCharId()) {
-            this.data = data;
+        // Sanity check
+        if (this.data != null || data.getId() != this.getCharId()) {
+            return;
+        }
+        
+        // Set data
+        this.data = data;
+        
+        // Check contacts
+        if (this.contact == null) {
+            this.contact = new CharacterContact(this);
+            this.save();
+        } else {
+            this.contact.setCharacter(this);
         }
     }
     

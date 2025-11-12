@@ -1,7 +1,10 @@
 package emu.nebula.data.resources;
 
+import java.util.List;
+
 import emu.nebula.data.BaseDef;
 import emu.nebula.data.ResourceType;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 
 @Getter
@@ -21,6 +24,8 @@ public class CharacterDef extends BaseDef {
     private int FragmentsId;
     private int TransformQty;
     
+    private transient List<ChatDef> chats;
+    
     @Override
     public int getId() {
         return Id;
@@ -32,5 +37,10 @@ public class CharacterDef extends BaseDef {
         }
         
         return this.SkillsUpgradeGroup[index];
+    }
+    
+    @Override
+    public void onLoad() {
+        this.chats = new ObjectArrayList<>();
     }
 }
