@@ -1,5 +1,6 @@
 package emu.nebula.database;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import emu.nebula.Config.DatabaseInfo;
@@ -27,6 +28,8 @@ import dev.morphia.*;
 import dev.morphia.annotations.Entity;
 import dev.morphia.mapping.Mapper;
 import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.FindOptions;
+import dev.morphia.query.Sort;
 import dev.morphia.query.filters.Filters;
 import dev.morphia.query.updates.UpdateOperators;
 import lombok.Getter;
@@ -158,6 +161,14 @@ public final class DatabaseManager {
 
     public <T> Stream<T> getObjects(Class<T> cls) {
         return getDatastore().find(cls).stream();
+    }
+    
+    public <T> List<T> getSortedObjects(Class<T> cls, String filter, int limit) {
+        var options = new FindOptions()
+                .sort(Sort.descending(filter))
+                .limit(limit);
+        
+        return getDatastore().find(cls).iterator(options).toList();
     }
 
     public <T> void save(T obj) {

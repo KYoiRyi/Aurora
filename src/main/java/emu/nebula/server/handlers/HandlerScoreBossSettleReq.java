@@ -16,7 +16,11 @@ public class HandlerScoreBossSettleReq extends NetHandler {
         var req = ScoreBossSettleReq.parseFrom(message);
         
         // Settle
-        session.getPlayer().getScoreBossManager().settle(req.getStar(), req.getScore());
+        boolean success = session.getPlayer().getScoreBossManager().settle(req.getStar(), req.getScore());
+        
+        if (success == false) {
+            return session.encodeMsg(NetMsgId.score_boss_settle_failed_ack);
+        }
         
         // Build response
         var rsp = ScoreBossSettleResp.newInstance();

@@ -16,6 +16,29 @@ public class HandlerScoreBossRankReq extends NetHandler {
         var rsp = ScoreBossRankInfo.newInstance()
                 .setLastRefreshTime(Nebula.getCurrentTime());
         
+        // Get self
+        var self = session.getPlayer().getScoreBossManager().getRanking();
+        
+        if (self != null) {
+            rsp.setSelf(self.toProto());
+        }
+        
+        // Get ranking
+        var ranking = Nebula.getGameContext().getScoreBossModule().getRanking();
+        
+        for (var entry : ranking) {
+            // Check self
+            if (self != null && self.getPlayerUid() == entry.getId()) {
+                rsp.getMutableSelf().setRank(entry.getRank());
+            }
+            
+            // Add to ranking
+            rsp.addRank(entry);
+        }
+        
+        // Set total
+        rsp.setTotal(ranking.size());
+        
         // Encode and send
         return session.encodeMsg(NetMsgId.score_boss_rank_succeed_ack, rsp);
     }
