@@ -33,7 +33,6 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
     private int uid;
     
     // Daily activity missions
-    private int activity;
     private IntSet claimedActiveIds;
     
     // Quests
@@ -71,6 +70,29 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
         Nebula.getGameDatabase().update(this, this.getUid(), "levelRewards", this.levelRewards);
     }
     
+    public synchronized int getActivity() {
+        int activity = 0;
+        
+        for (var quest : getQuests().values()) {
+            if (quest.getType() != QuestType.Daily) {
+                continue;
+            }
+            
+            if (!quest.isClaimed()) {
+                continue;
+            }
+            
+            var data = GameData.getDailyQuestDataTable().get(quest.getId());
+            if (data == null) {
+                continue;
+            }
+            
+            activity += data.getActive();
+        }
+        
+        return activity;
+    }
+    
     public synchronized void resetDailyQuests() {
         // Reset daily quests
         for (var data : GameData.getDailyQuestDataTable()) {
@@ -85,9 +107,7 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
         }
         
         // Reset activity
-        this.activity = 0;
         this.claimedActiveIds.clear();
-        
         this.hasDailyReward = true;
         
         // Persist to database
@@ -164,9 +184,6 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
             if (data != null) {
                 // Add reward data
                 this.getPlayer().getInventory().addItem(data.getItemTid(), data.getItemQty(), change);
-                
-                // Add activity
-                this.activity += data.getActive();
             }
             
             // Set claimed
@@ -175,9 +192,6 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
             // Update in database
             Nebula.getGameDatabase().update(this, this.getUid(), "quests." + quest.getId(), quest);
         }
-        
-        // Update in database
-        Nebula.getGameDatabase().update(this, this.getUid(), "activity", this.getActivity());
         
         // Trigger quest
         this.getPlayer().triggerQuest(QuestCondType.QuestWithSpecificType, claimList.size(), QuestType.Daily);
@@ -191,13 +205,15 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
         var claimList = new IntArrayList();
         var rewards = new ItemParamMap();
         
+        int activity = this.getActivity();
+        
         // Get claimable 
         for (var data : GameData.getDailyQuestActiveDataTable()) {
             if (this.getClaimedActiveIds().contains(data.getId())) {
                 continue;
             }
             
-            if (this.getActivity() >= data.getActive()) {
+            if (activity >= data.getActive()) {
                 // Add rewards
                 rewards.add(data.getRewards());
                 
@@ -304,10 +320,12 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
             quests.addList(quest.toProto());
         }
         
+        // Set claimed activity ids
         for (int id : this.getClaimedActiveIds()) {
             proto.addDailyActiveIds(id);
         }
         
+        // Set world level rewards
         proto.getMutableState()
             .getMutableWorldClassReward()
             .setFlag(this.getLevelRewards().toBigEndianByteArray());
