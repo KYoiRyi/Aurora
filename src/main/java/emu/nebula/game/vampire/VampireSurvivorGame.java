@@ -18,6 +18,7 @@ public class VampireSurvivorGame {
     
     private IntSet cards;
     
+    // Reward selector
     private int rewardLevel;
     private IntList rewards;
     
@@ -31,14 +32,9 @@ public class VampireSurvivorGame {
         this.calcRewards();
     }
     
-    public void calcRewards() {
-        // Clear reward list first
-        this.rewards.clear();
-        
-        // Increment level
-        this.rewardLevel++;
-        
+    private WeightedList<Integer> getRandom() {
         var random = new WeightedList<Integer>();
+        
         for (var card : GameData.getFateCardDataTable()) {
             // Filter only vampire surv cards
             if (!card.isIsVampire()) {
@@ -54,6 +50,19 @@ public class VampireSurvivorGame {
             random.add(100, card.getId());
         }
         
+        return random;
+    }
+    
+    public void calcRewards() {
+        // Clear reward list first
+        this.rewards.clear();
+        
+        // Increment level
+        this.rewardLevel++;
+        
+        // Get random selector
+        var random = this.getRandom();
+        
         // Add 2 rewards
         this.getRewards().add(random.next().intValue());
         this.getRewards().add(random.next().intValue());
@@ -66,16 +75,42 @@ public class VampireSurvivorGame {
         }
         
         // Get fate card id
-        int id = this.getRewards().getInt(index);
+        int cardId = this.getRewards().getInt(index);
         
         // Add to cards
-        this.getCards().add(id);
+        this.getCards().add(cardId);
         
         // Reroll rewards
         this.calcRewards();
         
         // Success
-        return id;
+        return cardId;
+    }
+    
+    public IntList calcRewardChest(int event, int number) {
+        // Init variables
+        var chest = new IntArrayList();
+        int count = 2;
+        
+        for (int i = 0; i < count; i++) {
+            // Get random selector
+            var random = this.getRandom();
+            
+            // Sanity check
+            if (random.size() == 0) {
+                break;
+            }
+            
+            // Get
+            int cardId = random.next();
+            
+            // Add to cards
+            this.getCards().add(cardId);
+            chest.add(cardId);
+        }
+        
+        // Success
+        return chest;
     }
 
     // Proto
