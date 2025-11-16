@@ -28,6 +28,12 @@ public class GameData {
     @Getter private static DataTable<TalentGroupDef> TalentGroupDataTable = new DataTable<>();
     @Getter private static DataTable<TalentDef> TalentDataTable = new DataTable<>();
     
+    @Getter private static DataTable<CharGemDef> CharGemDataTable = new DataTable<>();
+    @Getter private static DataTable<CharGemSlotControlDef> CharGemSlotControlDataTable = new DataTable<>();
+    @Getter private static DataTable<CharGemAttrGroupDef> CharGemAttrGroupDataTable = new DataTable<>();
+    @Getter private static DataTable<CharGemAttrTypeDef> CharGemAttrTypeDataTable = new DataTable<>();
+    @Getter private static DataTable<CharGemAttrValueDef> CharGemAttrValueDataTable = new DataTable<>();
+    
     @Getter private static DataTable<ChatDef> ChatDataTable = new DataTable<>();
     
     // Discs

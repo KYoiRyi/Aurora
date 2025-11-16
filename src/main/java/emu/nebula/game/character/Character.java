@@ -1,5 +1,8 @@
 package emu.nebula.game.character;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.bson.types.ObjectId;
@@ -7,6 +10,7 @@ import org.bson.types.ObjectId;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Indexed;
+import dev.morphia.annotations.PostLoad;
 import dev.morphia.annotations.PreLoad;
 import emu.nebula.GameConstants;
 import emu.nebula.Nebula;
@@ -49,8 +53,13 @@ public class Character implements GameDatabaseObject {
     private int skin;
     private int[] skills;
     private Bitset talents;
-    private CharacterContact contact;
     private long createTime;
+    
+    private int gemPresetIndex;
+    private List<CharacterGemPreset> gemPresets;
+    private CharacterGemSlot[] gemSlots;
+    
+    private CharacterContact contact;
     
     @Deprecated // Morphia only!
     public Character() {
@@ -66,12 +75,13 @@ public class Character implements GameDatabaseObject {
         this.playerUid = player.getUid();
         this.charId = data.getId();
         this.data = data;
-        this.createTime = Nebula.getCurrentTime();
         
         this.level = 1;
         this.skin = data.getDefaultSkinId();
         this.skills = new int[] {1, 1, 1, 1, 1};
         this.talents = new Bitset();
+        this.createTime = Nebula.getCurrentTime();
+        
         this.contact = new CharacterContact(this);
     }
     
@@ -352,6 +362,152 @@ public class Character implements GameDatabaseObject {
         return true;
     }
     
+    // Gems
+    
+    public boolean hasGemPreset(int index) {
+        return index >= 0 && index < this.getGemPresets().size();
+    }
+    
+    public CharacterGemPreset getCurrentGemPreset() {
+        return this.getGemPreset(this.getGemPresetIndex());
+    }
+    
+    public CharacterGemPreset getGemPreset(int presetIndex) {
+        while (this.getGemPresetIndex() >= this.getGemPresets().size()) {
+            this.getGemPresets().add(new CharacterGemPreset(this));
+        }
+        
+        return this.getGemPresets().get(presetIndex);
+    }
+    
+    public boolean setCurrentGemPreset(int index) {
+        // Sanity check
+        if (index < 0 || index >= GameConstants.CHARACTER_MAX_GEM_PRESETS) {
+            return false;
+        }
+        
+        // Set current preset and save to database
+        this.gemPresetIndex = index;
+        this.save();
+        
+        // Success
+        return true;
+    }
+    
+    public CharacterGem getGem(CharacterGemPreset preset, int slotId) {
+        // Get gem index
+        int gemIndex = preset.getGemIndex(slotId - 1);
+        
+        if (gemIndex <= 0) {
+            return null;
+        }
+        
+        // Get gem slot
+        var slot = this.getGemSlot(slotId);
+        
+        if (slot == null) {
+            return null;
+        }
+        
+        // Get gem from the slot using preset index
+        return slot.getGem(gemIndex);
+    }
+    
+    public boolean equipGem(int presetIndex, int slotId, int gemIndex) {
+        // Sanity check
+        if (presetIndex < 0 || presetIndex >= GameConstants.CHARACTER_MAX_GEM_PRESETS) {
+            return false;
+        }
+        
+        // Get preset
+        var preset = this.getGemPreset(presetIndex);
+        
+        // Set gem index in preset
+        boolean success = preset.setGemIndex(slotId, gemIndex);
+        
+        // Save if successful
+        if (success) {
+            this.save();
+        }
+        
+        return success;
+    }
+    
+    public boolean hasGemSlot(int slotId) {
+        // Calculate index from slot id
+        int index = slotId - 1;
+        
+        // Sanity check
+        if (index < 0 || index >= this.getGemSlots().length) {
+            return false;
+        }
+        
+        return this.gemSlots[index] != null;
+    }
+    
+    public CharacterGemSlot getGemSlot(int slotId) {
+        // Calculate index from slot id
+        int index = slotId - 1;
+        
+        // Sanity check
+        if (index < 0 || index >= this.getGemSlots().length) {
+            return null;
+        }
+        
+        // Create gem slot object if it doesnt exist
+        if (this.gemSlots[index] == null) {
+            this.gemSlots[index] = new CharacterGemSlot(slotId);
+        }
+        
+        return this.gemSlots[index];
+    }
+
+    public synchronized PlayerChangeInfo generateGem(int slotId) {
+        // Get gem slot
+        var slot = this.getGemSlot(slotId);
+        if (slot == null) {
+            return null;
+        }
+        
+        // Skip if slot is full
+        if (slot.isFull()) {
+            return null;
+        }
+        
+        // Get gem data
+        var gemData = this.getData().getCharGemData(slotId);
+        var gemControl = gemData.getControlData();
+        
+        // Check character level
+        if (this.getLevel() < gemControl.getUnlockLevel()) {
+            return null;
+        }
+        
+        // Make sure the player has the materials to craft the emblem
+        if (!getPlayer().getInventory().hasItem(gemData.getGenerateCostTid(), gemControl.getGeneratenCostQty())) {
+            return null;
+        }
+        
+        // Generate attributes and create gem
+        var attributes = gemControl.generateAttributes();
+        var gem = new CharacterGem(attributes);
+        
+        // Add gem to slot
+        slot.getGems().add(gem);
+        
+        // Save to database
+        this.save();
+        
+        // Consume materials
+        var change = getPlayer().getInventory().removeItem(gemData.getGenerateCostTid(), gemControl.getGeneratenCostQty());
+        
+        // Set change info extra info
+        change.setExtraData(gem);
+        
+        // Success
+        return change;
+    }
+    
     // Proto
     
     public Char toProto() {
@@ -363,24 +519,36 @@ public class Character implements GameDatabaseObject {
                 .setTalentNodes(this.getTalents().toByteArray())
                 .addAllSkillLvs(this.getSkills())
                 .setCreateTime(this.getCreateTime());
-        
+
+        // Encode gem presets
         var gemPresets = proto.getMutableCharGemPresets()
-            .getMutableCharGemPresets();
+                .setInUsePresetIndex(this.getGemPresetIndex())
+                .getMutableCharGemPresets();
         
-        for (int i = 0; i < 3; i++) {
-            var preset = CharGemPreset.newInstance()
-                    .addAllSlotGem(-1, -1, -1);
+        for (int i = 0; i < GameConstants.CHARACTER_MAX_GEM_PRESETS; i++) {
+            CharGemPreset info = null;
+                    
+            if (this.hasGemPreset(i)) {
+                info = getGemPresets().get(i).toProto();
+            } else {
+                info = CharGemPreset.newInstance()
+                        .addAllSlotGem(-1, -1, -1);
+            }
             
-            gemPresets.add(preset);
+            gemPresets.add(info);
         }
         
-        for (int i = 1; i <= 3; i++) {
-            var slot = CharGemSlot.newInstance()
-                    .setId(i);
-            
-            proto.addCharGemSlots(slot);
+        // Encode gems
+        for (int i = 1; i <= GameConstants.CHARACTER_MAX_GEM_SLOTS; i++) {
+            if (this.hasGemSlot(i)) {
+                var slot = this.getGemSlot(i);
+                proto.addCharGemSlots(slot.toProto());
+            } else {
+                proto.addCharGemSlots(CharGemSlot.newInstance().setId(i));
+            }
         }
         
+        // Affinity quests
         proto.getMutableAffinityQuests();
         
         return proto;
@@ -394,12 +562,21 @@ public class Character implements GameDatabaseObject {
                 .setTalentNodes(this.getTalents().toByteArray())
                 .addAllSkillLvs(this.getSkills());
         
-        for (int i = 1; i <= 3; i++) {
-            var slot = StarTowerCharGem.newInstance()
-                    .setSlotId(i)
-                    .addAllAttributes(new int[] {0, 0, 0, 0});
+        // Encode gems
+        var preset = this.getCurrentGemPreset();
+        
+        for (int i = 1; i <= preset.getLength(); i++) {
+            var gem = this.getGem(preset, i);
+            var info = StarTowerCharGem.newInstance()
+                    .setSlotId(i);
             
-            proto.addGems(slot);
+            if (gem != null) {
+                info.addAllAttributes(gem.getAttributes());
+            } else {
+                info.addAllAttributes(new int[] {0, 0, 0, 0});
+            }
+            
+            proto.addGems(info);
         }
         
         return proto;
@@ -408,11 +585,24 @@ public class Character implements GameDatabaseObject {
     // Database fix
     
     @PreLoad
-    public void onLoad(Document doc) {
+    public void preLoad(Document doc) {
         var talents = doc.get("talents");
         if (talents != null && talents.getClass() == Binary.class) {
             doc.remove("talents");
             this.talents = new Bitset();
+        }
+    }
+    
+    @PostLoad
+    public void postLoad() {
+        if (this.gemSlots == null) {
+            // Create gem slots array if it didn't exist
+            this.gemSlots = new CharacterGemSlot[GameConstants.CHARACTER_MAX_GEM_SLOTS];
+        }
+        
+        if (this.gemPresets == null) {
+            // Create gem presets list if it didn't exist
+            this.gemPresets = new ArrayList<>();
         }
     }
 }

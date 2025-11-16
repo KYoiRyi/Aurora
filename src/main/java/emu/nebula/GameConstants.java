@@ -22,6 +22,10 @@ public class GameConstants {
     public static final int MAX_ENERGY = 240;
     public static final int ENERGY_REGEN_TIME = 360; // Seconds
     
+    public static final int CHARACTER_MAX_GEMS_PER_SLOT = 4;
+    public static final int CHARACTER_MAX_GEM_PRESETS = 3;
+    public static final int CHARACTER_MAX_GEM_SLOTS = 3;
+    
     public static final int MAX_FORMATIONS = 5;
     public static final int MAX_SHOWCASE_IDS = 5;
     
