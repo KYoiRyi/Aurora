@@ -12,6 +12,8 @@ import lombok.Getter;
 @ResourceType(name = "Character.json")
 public class CharacterDef extends BaseDef {
     private int Id;
+    private boolean Visible;
+    private boolean Available;
     private String Name;
     private int Grade;
     

@@ -8,6 +8,9 @@ import lombok.Getter;
 @ResourceType(name = "Disc.json")
 public class DiscDef extends BaseDef {
     private int Id;
+    private boolean Visible;
+    private boolean Available;
+    
     private int StrengthenGroupId;
     private int PromoteGroupId;
     private int TransformItemId;
