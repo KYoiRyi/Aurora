@@ -237,11 +237,14 @@ public class GameDisc implements GameDatabaseObject {
         // Remove items
         var change = this.getPlayer().getInventory().removeItems(materials, null);
         
-        // Add phase level
-        this.star = Math.max(this.star + count, 4);
+        // Add star
+        int old = this.star;
+        this.star = Math.max(this.star + count, 5);
         
-        // Save to database
-        this.save();
+        // Save to database if star count changed
+        if (this.star != old) {
+            this.save();
+        }
         
         // Success
         return change.setSuccess(true);

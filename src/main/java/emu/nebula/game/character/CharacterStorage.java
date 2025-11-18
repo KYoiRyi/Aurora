@@ -1,5 +1,6 @@
 package emu.nebula.game.character;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import emu.nebula.Nebula;
@@ -10,6 +11,7 @@ import emu.nebula.game.player.PlayerManager;
 import emu.nebula.proto.Public.HandbookInfo;
 import emu.nebula.util.Bitset;
 import emu.nebula.game.player.Player;
+import emu.nebula.game.player.PlayerChangeInfo;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
@@ -162,6 +164,45 @@ public class CharacterStorage extends PlayerManager {
                 .setData(bitset.toByteArray());
         
         return handbook;
+    }
+    
+    public PlayerChangeInfo limitBreakAllDiscs() {
+        // Create variables
+        var change = new PlayerChangeInfo();
+        var modifiedDiscs = new ArrayList<GameDisc>();
+        
+        // Try to limit all discs
+        for (var disc : this.getDiscCollection()) {
+            // Skip if at max stars
+            if (disc.getStar() >= 5) {
+                continue;
+            }
+            
+            // Get transform id
+            var transformId = disc.getData().getTransformItemId();
+            var transformCount = this.getPlayer().getInventory().getItemCount(transformId);
+            
+            if (transformCount <= 0) {
+                continue;
+            }
+            
+            // Try to limit break
+            var discChange = disc.limitBreak(transformCount);
+            
+            // Check if limit break was successful
+            if (discChange == null) {
+                continue;
+            }
+            
+            // Merge any changes from the disc limit break to this one
+            change.add(discChange);
+            
+            // Add to changed discs
+            modifiedDiscs.add(disc);
+        }
+        
+        // Success
+        return change.setExtraData(modifiedDiscs);
     }
     
     // Database
