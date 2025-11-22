@@ -37,6 +37,12 @@ public class GameConstants {
     public static final int MAX_FRIENDSHIPS = 50;
     public static final int MAX_PENDING_FRIENDSHIPS = 30;
     
+    public static int[][] VAMPIRE_SURVIVOR_BONUS_POWER = new int[][] {
+        new int[] {100, 120},
+        new int[] {200, 150},
+        new int[] {300, 200}
+    };
+    
     // Daily gifts (Custom)
     
     public static final WeightedList<ItemParam> DAILY_GIFTS = new WeightedList<>();

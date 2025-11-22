@@ -2,7 +2,6 @@ package emu.nebula.server.handlers;
 
 import emu.nebula.net.NetHandler;
 import emu.nebula.net.NetMsgId;
-import emu.nebula.proto.VampireSurvivorSettle.VampireSurvivorAreaInfo;
 import emu.nebula.proto.VampireSurvivorSettle.VampireSurvivorSettleReq;
 import emu.nebula.proto.VampireSurvivorSettle.VampireSurvivorSettleResp;
 import emu.nebula.net.HandlerId;
@@ -16,40 +15,35 @@ public class HandlerVampireSurvivorSettleReq extends NetHandler {
         // Parse request
         var req = VampireSurvivorSettleReq.parseFrom(message);
         
-        // Sanity check
+        // Get vampire survivor game
         var game = session.getPlayer().getVampireSurvivorManager().getGame();
         
         if (game == null) {
             session.encodeMsg(NetMsgId.vampire_survivor_settle_failed_ack);
         }
         
-        // Calculate victory + score
+        // Calculate victory
         boolean victory = !req.getDefeat();
-        int score = 1;
         
-        // Settle
-        session.getPlayer().getVampireSurvivorManager().settle(victory, score);
+        // Settle area
+        var area = game.settleArea(req.getTime(), req.getKillCount().toArray());
+        
+        // Settle game
+        session.getPlayer().getVampireSurvivorManager().settle(victory, area.getScore());
         
         // Build response
         var rsp = VampireSurvivorSettleResp.newInstance();
         
         if (victory) {
-            var areaInfo = VampireSurvivorAreaInfo.newInstance()
-                    .setBossTime(1)
-                    .setScore(score);
-            
-            // TODO
-            for (int i : req.getKillCount()) {
-                areaInfo.addKillCount(i);
-                areaInfo.addKillScore(0);
-            }
-            
             rsp.getMutableVictory()
-                .setFinalScore(score)
-                .addInfos(areaInfo);
+                .setFinalScore(game.getTotalScore());
+            
+            for (var a : game.getAreas()) {
+                rsp.getMutableVictory().addInfos(a.toProto());
+            }
         } else {
             rsp.getMutableDefeat()
-                .setFinalScore(score);
+                .setFinalScore(game.getTotalScore());
         }
         
         // Encode and send

@@ -1,5 +1,6 @@
 package emu.nebula.game.vampire;
 
+import java.util.List;
 import java.util.Set;
 
 import emu.nebula.data.GameData;
@@ -8,10 +9,12 @@ import emu.nebula.data.resources.VampireSurvivorDef;
 import emu.nebula.proto.Public.CardInfo;
 import emu.nebula.proto.Public.VampireSurvivorLevelReward;
 import emu.nebula.util.WeightedList;
+
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 
@@ -27,6 +30,9 @@ public class VampireSurvivorGame {
     private int rewardLevel;
     private IntList rewards;
     
+    // Areas
+    private List<VampireSurvivorArea> areas;
+    
     // Cache
     private Set<FateCardDef> randomCards;
     
@@ -37,6 +43,7 @@ public class VampireSurvivorGame {
         
         this.cards = new IntOpenHashSet();
         this.rewards = new IntArrayList();
+        this.areas = new ObjectArrayList<>();
         
         // Cache fate cards from bundles
         this.cacheRandomCards();
@@ -47,6 +54,16 @@ public class VampireSurvivorGame {
     
     public int getId() {
         return this.getData().getId();
+    }
+    
+    public int getTotalScore() {
+        int score = 0;
+        
+        for (var area : this.getAreas()) {
+            score += area.getScore();
+        }
+        
+        return score;
     }
 
     public boolean isNewCard(int id) {
@@ -145,6 +162,17 @@ public class VampireSurvivorGame {
         
         // Success
         return chest;
+    }
+
+    public VampireSurvivorArea settleArea(int time, int[] killCount) {
+        // Create area
+        var area = new VampireSurvivorArea(this, time, killCount);
+        
+        // Add to areas list
+        this.getAreas().add(area);
+        
+        // Success
+        return area;
     }
 
     // Proto
