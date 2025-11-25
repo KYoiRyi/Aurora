@@ -35,6 +35,7 @@ import emu.nebula.util.Bitset;
 import emu.nebula.util.CustomIntArray;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.Getter;
 import us.hebi.quickbuf.RepeatedInt;
 
@@ -58,6 +59,7 @@ public class GameCharacter implements GameDatabaseObject {
     private int skin;
     private int[] skills;
     private Bitset talents;
+    private IntSet plots;
     private long createTime;
     
     private int gemPresetIndex;
@@ -461,6 +463,40 @@ public class GameCharacter implements GameDatabaseObject {
         return change;
     }
     
+    public PlayerChangeInfo recvPlotReward(int plotId) {
+        // Create change info
+        var change = new PlayerChangeInfo();
+        
+        // Sanity check to prevent players from recving rewards over and over again from the same plot
+        if (this.getPlots() != null && this.getPlots().contains(plotId)) {
+            return change;
+        }
+        
+        // Get data
+        var plot = GameData.getPlotDataTable().get(plotId);
+        
+        // Sanity check to make sure we can complete this plot quest
+        if (plot == null || plot.getChar() != this.getCharId() || plot.getUnlockAffinityLevel() > this.getAffinityLevel()) {
+            return change;
+        }
+        
+        // Complete plot
+        if (this.plots == null) {
+            this.plots = new IntOpenHashSet();
+        }
+        
+        this.getPlots().add(plotId);
+        
+        // Update to database
+        this.save();
+        
+        // Add items
+        this.getPlayer().getInventory().addItems(plot.getRewards(), change);
+        
+        // Success
+        return change;
+    }
+    
     // Gems
     
     public boolean hasGemPreset(int index) {
@@ -782,6 +818,12 @@ public class GameCharacter implements GameDatabaseObject {
         // Affinity quests
         proto.getMutableAffinityQuests();
         
+        // Encode plots
+        if (this.getPlots() != null) {
+            this.getPlots().forEach(proto::addPlots);
+        }
+        
+        // Finish
         return proto;
     }
     

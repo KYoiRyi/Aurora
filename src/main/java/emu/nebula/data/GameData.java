@@ -30,6 +30,7 @@ public class GameData {
     
     @Getter private static DataTable<AffinityLevelDef> AffinityLevelDataTable = new DataTable<>();
     @Getter private static DataTable<AffinityGiftDef> AffinityGiftDataTable = new DataTable<>();
+    @Getter private static DataTable<PlotDef> PlotDataTable = new DataTable<>();
     
     @Getter private static DataTable<CharGemDef> CharGemDataTable = new DataTable<>();
     @Getter private static DataTable<CharGemSlotControlDef> CharGemSlotControlDataTable = new DataTable<>();
@@ -95,6 +96,9 @@ public class GameData {
     // Daily quests
     @Getter private static DataTable<DailyQuestDef> DailyQuestDataTable = new DataTable<>();
     @Getter private static DataTable<DailyQuestActiveDef> DailyQuestActiveDataTable = new DataTable<>();
+    
+    // Achievements
+    @Getter private static DataTable<AchievementDef> AchievementDataTable = new DataTable<>();
     
     // Tutorial
     @Getter private static DataTable<TutorialLevelDef> TutorialLevelDataTable = new DataTable<>();
