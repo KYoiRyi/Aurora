@@ -17,7 +17,7 @@ import emu.nebula.command.CommandHandler;
 public class GiveCommand implements CommandHandler {
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
         // Setup mail
         var mail = new GameMail("System", "Give Command Result", "");
         
@@ -31,18 +31,17 @@ public class GiveCommand implements CommandHandler {
             
             var itemData = GameData.getItemDataTable().get(itemId);
             if (itemData == null) {
-                args.sendMessage("Item \"" + arg + "\" does not exist!");
                 continue;
             }
             
             // Add
             mail.addAttachment(itemId, amount);
-            
-            // Log
-            args.sendMessage("Giving " + args.getTarget().getName() + " " + amount + " of " + itemId);
         }
         
         // Add mail
         args.getTarget().getMailbox().sendMail(mail);
+        
+        //
+        return "Give command success, check your mail";
     }
 }

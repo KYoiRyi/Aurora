@@ -31,15 +31,14 @@ public class GiveAllCommand implements CommandHandler {
     );
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
         Player target = args.getTarget();
         String type = args.get(0).toLowerCase();
         
-        
         var change = new PlayerChangeInfo();
+        var message = new StringBuilder();
 
         switch (type) {
-            default -> args.sendMessage("Error: Invalid type");
             case "m", "materials", "mats" -> {
                 // Create items map
                 var items = new ItemParamMap();
@@ -66,7 +65,7 @@ public class GiveAllCommand implements CommandHandler {
                 target.getInventory().addItems(items, change);
 
                 // Send message
-                args.sendMessage("Giving " + target.getName() + " " + items.size() + " items");
+                message.append("Giving " + target.getName() + " " + items.size() + " items.\n");
             }
             case "d", "discs" -> {
                 // Get all discs
@@ -92,7 +91,7 @@ public class GiveAllCommand implements CommandHandler {
                 }
 
                 // Send message
-                args.sendMessage("Giving " + target.getName() + " all discs");
+                message.append("Giving " + target.getName() + " all discs.\n");
             }
             case "c", "characters", "trekkers", "t" -> {
                 // Get all characters
@@ -118,16 +117,22 @@ public class GiveAllCommand implements CommandHandler {
                 }
 
                 // Send message
-                args.sendMessage("Giving " + target.getName() + " all characters");
+                message.append("Giving " + target.getName() + " all characters.\n");
+            }
+            default -> {
+                // Ignored
             }
         }
         
         if (change.isEmpty()) {
-            return;
+            return "No items given to the player";
         }
         
         // Encode and send
         target.addNextPackage(NetMsgId.items_change_notify, change.toProto());
+        
+        // Complete
+        return message.toString();
     }
 
 }

@@ -233,7 +233,8 @@ public class Nebula {
         String input;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
             while ((input = br.readLine()) != null) {
-                Nebula.getCommandManager().invoke(null, input);
+                var result = Nebula.getCommandManager().invoke(null, input);
+                Nebula.getLogger().info(result.getMessage());
             }
         } catch (Exception e) {
             Nebula.getLogger().error("Console error:", e);

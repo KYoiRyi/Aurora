@@ -17,41 +17,36 @@ import emu.nebula.util.Utils;
     desc = "/mail \"subject\" \"body\" [itemId xQty | itemId:qty ...]. Sends the targeted player a system mail."
 )
 public class MailCommand implements CommandHandler {
-
+    private static final String USAGE_TEXT = "Usage: /mail \"subject\" \"body\" [itemId xQty | itemId:qty ...]";
     private static final Pattern QUOTED_TEXT = Pattern.compile("\"([^\"]*)\"");
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
         var target = args.getTarget();
         if (target == null) {
-            args.sendMessage("Error: Targeted player not found or offline");
-            return;
+            return "Error - Targeted player not found or offline";
         }
 
         String rawInput = args.getRaw() == null ? "" : args.getRaw().trim();
         if (rawInput.isEmpty()) {
-            sendUsage(args);
-            return;
+            return USAGE_TEXT;
         }
 
         Matcher matcher = QUOTED_TEXT.matcher(rawInput);
         if (!matcher.find()) {
-            sendUsage(args);
-            return;
+            return USAGE_TEXT;
         }
 
         String subject = matcher.group(1).trim();
         if (!matcher.find()) {
-            args.sendMessage("Mail body must be wrapped in quotes after the subject.");
-            return;
+            return "Mail body must be wrapped in quotes after the subject.";
         }
 
         String body = matcher.group(1).trim();
         int attachmentStartIndex = matcher.end();
 
         if (subject.isEmpty()) {
-            args.sendMessage("Mail subject cannot be empty.");
-            return;
+            return "Mail subject cannot be empty.";
         }
 
         if (body.isEmpty()) {
@@ -68,7 +63,7 @@ public class MailCommand implements CommandHandler {
         parseAttachments(attachmentSection, mail, args);
         
         target.getMailbox().sendMail(mail);
-        args.sendMessage("Mail sent to " + target.getName() + " with subject \"" + subject + "\".");
+        return "Mail sent to " + target.getName() + " with subject \"" + subject + "\".";
     }
 
     private void parseAttachments(String attachmentSection, GameMail mail, CommandArgs args) {
@@ -93,7 +88,7 @@ public class MailCommand implements CommandHandler {
 
             if (token.startsWith("x") && token.length() > 1) {
                 if (pendingItemId == null) {
-                    args.sendMessage("Quantity token '" + token + "' must follow an item id.");
+                    //args.sendMessage("Quantity token '" + token + "' must follow an item id.");
                     continue;
                 }
 
@@ -110,7 +105,7 @@ public class MailCommand implements CommandHandler {
 
                 int itemId = Utils.parseSafeInt(token);
                 if (itemId <= 0) {
-                    args.sendMessage("Invalid item id '" + token + "'.");
+                    //args.sendMessage("Invalid item id '" + token + "'.");
                     pendingItemId = null;
                     continue;
                 }
@@ -119,7 +114,7 @@ public class MailCommand implements CommandHandler {
                 continue;
             }
 
-            args.sendMessage("Ignoring attachment token '" + token + "'.");
+            //args.sendMessage("Ignoring attachment token '" + token + "'.");
         }
 
         if (pendingItemId != null) {
@@ -129,7 +124,7 @@ public class MailCommand implements CommandHandler {
 
     private void addAttachment(GameMail mail, CommandArgs args, int itemId, int quantity) {
         if (itemId <= 0) {
-            args.sendMessage("Item id must be positive.");
+            //args.sendMessage("Item id must be positive.");
             return;
         }
 
@@ -144,9 +139,5 @@ public class MailCommand implements CommandHandler {
             }
         }
         return !token.isEmpty();
-    }
-
-    private void sendUsage(CommandArgs args) {
-        args.sendMessage("Usage: /mail \"subject\" \"body\" [itemId xQty | itemId:qty ...]");
     }
 }

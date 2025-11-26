@@ -108,7 +108,7 @@ public class CommandManager {
         return sender.getAccount().hasPermission("target." + command.permission());
     }
     
-    public void invoke(Player sender, String message) {
+    public CommandResult invoke(Player sender, String message) {
         // Parse message into arguments
         List<String> args = Arrays.stream(message.split(" ")).collect(Collectors.toCollection(ArrayList::new));
         
@@ -122,6 +122,9 @@ public class CommandManager {
         
         // Get command handler
         CommandHandler handler = this.commands.get(label);
+        
+        // Create result object
+        var result = CommandResult.builder();
 
         // Execute command
         if (handler != null) {
@@ -131,8 +134,8 @@ public class CommandManager {
             // Check if sender has permission to run the command.
             if (sender != null && !this.checkPermission(sender, command)) {
                 // We have a double null check here just in case
-                sender.sendMessage("You do not have permission to use this command.");
-                return;
+                result.message("Error - You do not have permission to use this command");
+                return result.build();
             }
             
             // Build command arguments
@@ -140,14 +143,14 @@ public class CommandManager {
             
             // Check targeted permission
             if (sender != cmdArgs.getTarget() && !this.checkTargetPermission(sender, command)) {
-                cmdArgs.sendMessage("You do not have permission to use this command on another player.");
-                return;
+                result.message("Error - You do not have permission to use this command on another player");
+                return result.build();
             }
             
             // Make sure our command has a target
             if (command.requireTarget() && cmdArgs.getTarget() == null) {
-                cmdArgs.sendMessage("Error: Targeted player not found or offline");
-                return;
+                result.message("Error - Targeted player not found or offline");
+                return result.build();
             }
             
             // Log
@@ -156,13 +159,20 @@ public class CommandManager {
             }
             
             // Run command
-            handler.execute(cmdArgs);
-        } else {
-            if (sender != null) {
-                sender.sendMessage("Invalid Command!");
-            } else {
-                Nebula.getLogger().info("Invalid Command!");
+            String commandMessage = handler.execute(cmdArgs);
+            
+            // Parse out last newline
+            if (commandMessage.endsWith("\n")) {
+                commandMessage = commandMessage.substring(0, commandMessage.length() - 1);
             }
+            
+            // Set result data
+            result.command(handler);
+            result.message(commandMessage);
+        } else {
+            result.message("Invalid Command!");
         }
+        
+        return result.build();
     }
 }

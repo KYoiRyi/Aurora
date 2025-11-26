@@ -10,10 +10,9 @@ import emu.nebula.util.Utils;
 public class AccountCommand implements CommandHandler {
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
         if (args.size() < 2) {
-            args.sendMessage("Invalid amount of args");
-            return;
+            return "Invalid amount of args";
         }
         
         String command = args.get(0).toLowerCase();
@@ -29,19 +28,22 @@ public class AccountCommand implements CommandHandler {
                 }
     
                 if (AccountHelper.createAccount(username, null, reservedUid) != null) {
-                    args.sendMessage("Account created");
+                    return "Account created";
                 } else {
-                    args.sendMessage("Account already exists");
+                    return "Account already exists";
                 }
             }
             case "delete" -> {
                 if (AccountHelper.deleteAccount(username)) {
-                    args.sendMessage("Account deleted");
+                    return "Account deleted";
                 } else {
-                    args.sendMessage("Account doesnt exist");
+                    return "Account doesnt exist";
                 }
             }
         }
+        
+        // Fallback
+        return "Account sub command not found";
     }
 
 }

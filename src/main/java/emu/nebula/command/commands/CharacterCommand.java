@@ -16,13 +16,13 @@ import emu.nebula.command.CommandHandler;
         label = "character", 
         aliases = {"c", "char"}, 
         permission = "player.character", 
-        requireTarget = true, 
-        desc = "!c [all | {characterId}] lv(level) a(ascension) s(skill level) t(talent level)"
+        requireTarget = true,
+        desc = "!c [all | {characterId}] lv(level) a(ascension) s(skill level) t(talent level) f(affinity level)"
 )
 public class CharacterCommand implements CommandHandler {
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
         // Init
         var player = args.getTarget();
         var characters = new HashSet<GameCharacter>();
@@ -51,7 +51,7 @@ public class CharacterCommand implements CommandHandler {
         
         // Sanity check
         if (characters.isEmpty()) {
-            return;
+            return "Error: No characters selected";
         }
         
         // List of modified characters that we send to the client for updates
@@ -72,7 +72,7 @@ public class CharacterCommand implements CommandHandler {
         }
         
         if (modified.isEmpty()) {
-            return;
+            return "No changes applied";
         }
         
         // Encode and send
@@ -83,5 +83,6 @@ public class CharacterCommand implements CommandHandler {
         }
         
         player.addNextPackage(NetMsgId.chars_final_notify, proto);
+        return "Updated " + modified.size() + " character(s)";
     }
 }

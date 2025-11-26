@@ -57,7 +57,7 @@ public class RemoteHandler implements Handler {
         if (cachedUid != null) {
             player = Nebula.getGameContext().getPlayerModule().getPlayer(cachedUid);
             // Verify token matches (in case player changed token or cache is stale)
-            if (player != null && !token.equals(player.getPlayerRemoteToken())) {
+            if (player != null && !token.equals(player.getRemoteToken())) {
                 player = null;
                 tokenCache.remove(token);
             }
@@ -65,7 +65,7 @@ public class RemoteHandler implements Handler {
 
         // 2. Fallback to DB if not in cache or cache invalid
         if (player == null) {
-            player = Nebula.getGameDatabase().getObjectByField(Player.class, "playerRemoteToken", token);
+            player = Nebula.getGameDatabase().getObjectByField(Player.class, "remoteToken", token);
             if (player != null) {
                 tokenCache.put(token, player.getUid());
             }

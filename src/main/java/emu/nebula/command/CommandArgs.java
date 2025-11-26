@@ -26,6 +26,7 @@ public class CommandArgs {
     private int advance = -1;
     private int talent = -1;
     private int skill = -1;
+    private int affinity = -1;
     
     private Int2IntMap map;
     private ObjectSet<String> flags;
@@ -60,6 +61,9 @@ public class CommandArgs {
                         it.remove();
                     } else if (arg.startsWith("s")) { // Skill
                         this.skill = Utils.parseSafeInt(arg.substring(1));
+                        it.remove();
+                    } else if (arg.startsWith("f")) { // Affinity level
+                        this.affinity = Utils.parseSafeInt(arg.substring(1));
                         it.remove();
                     }
                 } else if (arg.startsWith("-")) { // Flag
@@ -107,18 +111,6 @@ public class CommandArgs {
         }
         
         return this.list.get(index);
-    }
-    
-    /**
-     * Sends a message to the command sender
-     * @param message
-     */
-    public void sendMessage(String message) {
-        if (sender != null) {
-            sender.sendMessage(message);
-        } else {
-            Nebula.getLogger().info(message);
-        }
     }
     
     public boolean hasFlag(String flag) {
@@ -189,6 +181,16 @@ public class CommandArgs {
             }
             
             hasChanged = true;
+        }
+
+        if (this.getAffinity() >= 0) {
+            int target = this.getAffinity();
+            if (target > 50) target = 50;
+            if (target < 0) target = 0;
+            if (character.getAffinityLevel() != target) {
+                character.setAffinityLevel(target);
+                hasChanged = true;
+            }
         }
         
         return hasChanged;

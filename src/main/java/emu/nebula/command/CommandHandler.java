@@ -10,6 +10,6 @@ public interface CommandHandler {
         return getData().label();
     }
     
-    public void execute(CommandArgs args);
+    public String execute(CommandArgs args);
     
 }

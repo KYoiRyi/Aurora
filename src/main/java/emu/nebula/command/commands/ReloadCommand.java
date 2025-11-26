@@ -9,14 +9,17 @@ import emu.nebula.command.CommandHandler;
 public class ReloadCommand implements CommandHandler {
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
+        // Reload config first
         Nebula.loadConfig();
         
+        // Reload patch list if the server is running
         if (Nebula.getHttpServer() != null) {
             Nebula.getHttpServer().loadPatchList();
         }
         
-        args.sendMessage("Reloaded the server config");
+        // Result message
+        return "Reloaded the server config";
     }
 
 }

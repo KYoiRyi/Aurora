@@ -9,17 +9,11 @@ import java.util.Random;
 
 @Command(label = "remote", permission = "player.remote", requireTarget = true, desc = "/remote. Send remote to web remote")
 public class RemoteKeyCommand implements CommandHandler {
-
-    private static String lastMessage;
-
-    public static String getLastMessage() {
-        return lastMessage;
-    }
+    private final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
         if (Nebula.getConfig().getRemoteCommand().useRemoteServices) {
-            String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             StringBuilder sb = new StringBuilder();
             Random random = new Random();
 
@@ -27,18 +21,12 @@ public class RemoteKeyCommand implements CommandHandler {
                 int index = random.nextInt(characters.length());
                 sb.append(characters.charAt(index));
             }
-            args.getTarget().setPlayerRemoteToken(sb.toString());
-            args.getTarget().save();
-            String textsend = "Key Generated: " + sb.toString();
-            lastMessage = textsend;
-            args.sendMessage(textsend);
-            return;
+            
+            args.getTarget().setRemoteToken(sb.toString());
+            return "Key Generated: " + sb.toString();
+        } else {
+            args.getTarget().setRemoteToken(null);
+            return "Remote Command Disabled on Server";
         }
-        String textsend = "RemoteCommand Disabled on Server";
-        args.getTarget().setPlayerRemoteToken(null);
-        args.getTarget().save();
-        lastMessage = textsend;
-        args.sendMessage(textsend);
-
     }
 }

@@ -34,12 +34,8 @@ public class HandlerCharAffinityGiftSendReq extends NetHandler {
         
         // Build response
         var rsp = CharAffinityGiftSendResp.newInstance()
-                .setChange(change.toProto());
-        
-        rsp.getMutableInfo()
-                .setCharId(character.getCharId())
-                .setAffinityLevel(character.getAffinityLevel())
-                .setAffinityExp(character.getAffinityExp());
+                .setChange(change.toProto())
+                .setInfo(character.getAffinityProto());
         
         // Encode and send
         return session.encodeMsg(NetMsgId.char_affinity_gift_send_succeed_ack, rsp);

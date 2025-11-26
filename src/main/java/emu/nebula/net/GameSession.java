@@ -60,10 +60,6 @@ public class GameSession {
         var player = this.player;
         this.player = null;
 
-        // Clear remote token
-        player.setPlayerRemoteToken(null);
-        player.save();
-
         // Remove session from player
         player.removeSession();
 

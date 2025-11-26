@@ -2,6 +2,7 @@ package emu.nebula.game.player;
 
 import java.util.Stack;
 
+import dev.morphia.annotations.AlsoLoad;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Indexed;
@@ -14,6 +15,7 @@ import emu.nebula.game.account.Account;
 import emu.nebula.game.agent.AgentManager;
 import emu.nebula.game.battlepass.BattlePassManager;
 import emu.nebula.game.character.CharacterStorage;
+import emu.nebula.game.dating.DatingManager;
 import emu.nebula.game.formation.FormationManager;
 import emu.nebula.game.friends.FriendList;
 import emu.nebula.game.gacha.GachaManager;
@@ -45,7 +47,6 @@ import emu.nebula.proto.Public.WorldClassRewardState;
 import emu.nebula.proto.Public.Title;
 
 import lombok.Getter;
-import lombok.Setter;
 import us.hebi.quickbuf.ProtoMessage;
 import us.hebi.quickbuf.RepeatedInt;
 
@@ -57,6 +58,10 @@ public class Player implements GameDatabaseObject {
     
     private transient Account account;
     private transient GameSession session;
+    
+    @Indexed
+    @AlsoLoad("playerRemoteToken")
+    private String remoteToken;
     
     // Details
     private String name;
@@ -83,12 +88,12 @@ public class Player implements GameDatabaseObject {
     private final transient CharacterStorage characters;
     private final transient FriendList friendList;
     private final transient BattlePassManager battlePassManager;
+    private final transient DatingManager datingManager;
     private final transient StarTowerManager starTowerManager;
     private final transient InstanceManager instanceManager;
     private final transient InfinityTowerManager infinityTowerManager;
     private final transient VampireSurvivorManager vampireSurvivorManager;
     private final transient ScoreBossManager scoreBossManager;
-    @Indexed @Setter @Getter private String playerRemoteToken;
     
     // Referenced data
     private transient Inventory inventory;
@@ -110,6 +115,7 @@ public class Player implements GameDatabaseObject {
         this.characters = new CharacterStorage(this);
         this.friendList = new FriendList(this);
         this.battlePassManager = new BattlePassManager(this);
+        this.datingManager = new DatingManager(this);
         this.starTowerManager = new StarTowerManager(this);
         this.instanceManager = new InstanceManager(this);
         this.infinityTowerManager = new InfinityTowerManager(this);
@@ -144,7 +150,6 @@ public class Player implements GameDatabaseObject {
         this.honor = new int[3];
         this.showChars = new int[3];
         this.boards = new int[] {410301};
-        this.playerRemoteToken = null;
         
         this.level = 1;
         this.energy = 240;
@@ -195,6 +200,25 @@ public class Player implements GameDatabaseObject {
     
     public boolean hasSession() {
         return this.session != null;
+    }
+    
+    public void setRemoteToken(String token) {
+        // Skip if tokens are the same
+        if (this.remoteToken == null) {
+            if (token == null) {
+                return;
+            }
+        } else if (this.remoteToken != null) {
+            if (this.remoteToken.equals(token)) {
+                return;
+            }
+        }
+        
+        // Set remote token
+        this.remoteToken = token;
+        
+        // Update in database
+        Nebula.getGameDatabase().update(this, this.getUid(), "remoteToken", this.remoteToken);
     }
     
     public boolean getGender() {
@@ -548,12 +572,6 @@ public class Player implements GameDatabaseObject {
         
         // Complete
         return change;
-    }
-    
-    //
-    
-    public void sendMessage(String string) {
-        // Empty
     }
     
     // Dailies

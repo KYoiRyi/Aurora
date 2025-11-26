@@ -21,7 +21,7 @@ import emu.nebula.command.CommandHandler;
 public class DiscCommand implements CommandHandler {
 
     @Override
-    public void execute(CommandArgs args) {
+    public String execute(CommandArgs args) {
         // Init
         var player = args.getTarget();
         var discs = new HashSet<GameDisc>();
@@ -50,7 +50,7 @@ public class DiscCommand implements CommandHandler {
         
         // Sanity check
         if (discs.isEmpty()) {
-            return;
+            return "No discs selected";
         }
         
         // List of modified characters that we send to the client for updates
@@ -71,12 +71,15 @@ public class DiscCommand implements CommandHandler {
         }
         
         if (modified.isEmpty()) {
-            return;
+            return "No discs changed";
         }
         
         // Encode and send
         for (var disc : modified) {
             player.addNextPackage(NetMsgId.disc_reset_notify, disc.toProto());
         }
+        
+        // Return message
+        return "Changed " + modified.size() + " discs";
     }
 }

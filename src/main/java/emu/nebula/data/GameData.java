@@ -28,17 +28,23 @@ public class GameData {
     @Getter private static DataTable<TalentGroupDef> TalentGroupDataTable = new DataTable<>();
     @Getter private static DataTable<TalentDef> TalentDataTable = new DataTable<>();
     
-    @Getter private static DataTable<AffinityLevelDef> AffinityLevelDataTable = new DataTable<>();
-    @Getter private static DataTable<AffinityGiftDef> AffinityGiftDataTable = new DataTable<>();
-    @Getter private static DataTable<PlotDef> PlotDataTable = new DataTable<>();
-    
+    // Character emblems
     @Getter private static DataTable<CharGemDef> CharGemDataTable = new DataTable<>();
     @Getter private static DataTable<CharGemSlotControlDef> CharGemSlotControlDataTable = new DataTable<>();
     @Getter private static DataTable<CharGemAttrGroupDef> CharGemAttrGroupDataTable = new DataTable<>();
     @Getter private static DataTable<CharGemAttrTypeDef> CharGemAttrTypeDataTable = new DataTable<>();
     @Getter private static DataTable<CharGemAttrValueDef> CharGemAttrValueDataTable = new DataTable<>();
     
+    // Character affinity
+    @Getter private static DataTable<AffinityLevelDef> AffinityLevelDataTable = new DataTable<>();
+    @Getter private static DataTable<AffinityGiftDef> AffinityGiftDataTable = new DataTable<>();
+    @Getter private static DataTable<PlotDef> PlotDataTable = new DataTable<>();
+    
     @Getter private static DataTable<ChatDef> ChatDataTable = new DataTable<>();
+    
+    @Getter private static DataTable<DatingLandmarkDef> DatingLandmarkDataTable = new DataTable<>();
+    @Getter private static DataTable<DatingLandmarkEventDef> DatingLandmarkEventDataTable = new DataTable<>();
+    @Getter private static DataTable<DatingCharacterEventDef> DatingCharacterEventDataTable = new DataTable<>();
     
     // Discs
     @Getter private static DataTable<DiscDef> DiscDataTable = new DataTable<>();

@@ -9,8 +9,10 @@ import emu.nebula.command.CommandHandler;
 public class HelpCommand implements CommandHandler {
 
     @Override
-    public void execute(CommandArgs args) {
-        args.sendMessage("Displaying list of commands:");
+    public String execute(CommandArgs args) {
+        var message = new StringBuilder();
+        
+        message.append("Displaying list of commands:\n");
 
         // Sort command names
         var labels = Nebula.getCommandManager().getLabels().keySet().stream().sorted().toList();
@@ -21,9 +23,11 @@ public class HelpCommand implements CommandHandler {
 
             // Only send command description if the sender has permission to use the command
             if (Nebula.getCommandManager().checkPermission(args.getSender(), command)) {
-                args.sendMessage(command.desc());
+                message.append(command.desc());
+                message.append("\n");
             }
         }
+        
+        return message.toString();
     }
-
 }
