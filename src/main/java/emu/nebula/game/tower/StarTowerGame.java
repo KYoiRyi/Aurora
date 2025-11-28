@@ -55,6 +55,7 @@ public class StarTowerGame {
     private int buildId;
     private int teamLevel;
     private int teamExp;
+    private int nextLevelExp;
     private int charHp;
     private int battleTime;
     private int battleCount;
@@ -103,6 +104,8 @@ public class StarTowerGame {
         this.formationId = req.getFormationId();
         this.buildId = Snowflake.newUid();
         this.teamLevel = 1;
+        this.teamExp = 0;
+        this.nextLevelExp = GameData.getStarTowerTeamExpDataTable().get(2).getNeedExp();
         this.stageNum = 1;
         this.stageFloor = 1;
         this.floor = 1;
@@ -175,15 +178,6 @@ public class StarTowerGame {
         // Add cases
         this.addCase(new StarTowerCase(CaseType.Battle));
         this.addCase(new StarTowerCase(CaseType.SyncHP));
-        
-        // Always keep the door open
-        var doorCase = this.addCase(new StarTowerCase(CaseType.OpenDoor));
-        doorCase.setFloorId(this.getStageFloor() + 1);
-        
-        var nextStage = this.getNextStageData();
-        if (nextStage != null) {
-            doorCase.setRoomType(nextStage.getRoomType());
-        }
     }
     
     public Player getPlayer() {
@@ -231,6 +225,37 @@ public class StarTowerGame {
         }
         
         return gold;
+    }
+
+    public int levelUp(int exp, int picks) {
+        if (this.teamExp + exp >= this.nextLevelExp) {
+            // Level up
+            this.teamLevel++;
+
+            // Add 1 to pending potential picks
+            picks++;
+
+            // Handle excess exp
+            if (this.teamExp + exp - this.nextLevelExp > 0) {
+                int excessExp = this.teamExp + exp - this.nextLevelExp;
+                return levelUp(excessExp, picks);
+            }
+
+            // Next level
+            this.nextLevelExp = GameData.getStarTowerTeamExpDataTable().get(this.teamLevel + 1).getNeedExp();
+        }
+        else {
+            // Update current team exp
+            this.teamExp += exp;
+        }
+
+        // Return picks
+        return picks;
+    }
+
+    public int levelUp(int exp) {
+        int potentialPicks = 0;
+        return this.levelUp(exp, potentialPicks);
     }
     
     // Cases
@@ -452,8 +477,34 @@ public class StarTowerGame {
         
         // Handle victory/defeat
         if (proto.hasVictory()) {
-            // Add team level
-            this.teamLevel++;
+            // Handle leveling up
+
+            // Get relevant floor exp data
+            var floorExpData = GameData.getStarTowerFloorExpDataTable().get(this.getId());
+            int expReward = 0;
+
+            // Determine appropriate exp reward
+            switch (this.getRoomType()) {
+                // Regular battle room
+                case 0:
+                    expReward = floorExpData.getNormalExp();
+                    break;
+                // Elite battle room
+                case 1:
+                    expReward = floorExpData.getEliteExp();
+                    break;
+                // Non-final boss room
+                case 2:
+                    expReward = floorExpData.getBossExp();
+                    break;
+                // Final room
+                case 3:
+                    expReward = floorExpData.getFinalBossExp();
+                    break;
+            }
+
+            // Level up
+            this.pendingPotentialCases += this.levelUp(expReward);
             
             // Add clear time
             this.battleTime += proto.getVictory().getTime();
@@ -465,17 +516,9 @@ public class StarTowerGame {
                 .setBattleTime(this.getBattleTime());
             
             // Add money
-            // TODO calculate properly
-            int money = Utils.randomRange(5, 15) * 10;
-            
-            if (this.getRoomType() == StarTowerRoomType.BossRoom.getValue()) {
-                money += 100;
-            }
+            int money = this.getStageData(this.getStageNum(), this.getStageFloor()).getInteriorCurrencyQuantity();
             
             this.addItem(GameConstants.STAR_TOWER_GOLD_ITEM_ID, money, change);
-            
-            // Add potential selectors
-            this.pendingPotentialCases += 1;
             
             // Handle pending potential selectors
             if (this.pendingPotentialCases > 0) {
@@ -485,6 +528,18 @@ public class StarTowerGame {
                 
                 this.pendingPotentialCases--;
             }
+            else {
+                // Add door case here
+                var doorCase = this.addCase(new StarTowerCase(CaseType.OpenDoor));
+                doorCase.setFloorId(this.getStageFloor() + 1);
+        
+                var nextStage = this.getNextStageData();
+                if (nextStage != null) {
+                    doorCase.setRoomType(nextStage.getRoomType());
+                }
+
+                this.addCase(rsp.getMutableCases(), doorCase);
+            }
             
             // Add sub note skills
             var battleCase = this.getCase(CaseType.Battle);
@@ -492,6 +547,7 @@ public class StarTowerGame {
                 int subNoteSkills = battleCase.getSubNoteSkillNum();
                 this.addRandomSubNoteSkills(subNoteSkills, change);
             }
+
         } else {
             // Handle defeat
             // TODO
@@ -530,8 +586,20 @@ public class StarTowerGame {
             // Create potential selector
             var potentialCase = this.createPotentialSelector(this.getRandomCharId());
             this.addCase(rsp.getMutableCases(), potentialCase);
-            
+
             this.pendingPotentialCases--;
+        }
+        else {
+            // Add door case
+            var doorCase = this.addCase(new StarTowerCase(CaseType.OpenDoor));
+            doorCase.setFloorId(this.getStageFloor() + 1);
+        
+            var nextStage = this.getNextStageData();
+            if (nextStage != null) {
+                doorCase.setRoomType(nextStage.getRoomType());
+            }
+
+            this.addCase(rsp.getMutableCases(), doorCase);
         }
         
         return rsp;
@@ -579,14 +647,6 @@ public class StarTowerGame {
         
         // Add cases
         var syncHpCase = new StarTowerCase(CaseType.SyncHP);
-        var doorCase = new StarTowerCase(CaseType.OpenDoor);
-        doorCase.setFloorId(this.getFloor() + 1);
-        
-        // Set room type of next room
-        var nextStage = this.getNextStageData();
-        if (nextStage != null) {
-            doorCase.setRoomType(nextStage.getRoomType());
-        }
         
         // Room proto
         var room = rsp.getMutableEnterResp().getMutableRoom();
@@ -613,7 +673,21 @@ public class StarTowerGame {
         
         // Add cases
         this.addCase(room.getMutableCases(), syncHpCase);
-        this.addCase(room.getMutableCases(), doorCase);
+
+        // Add door to next floor if current floor is choice/shop domains
+        if (this.roomType == 6 | this.roomType == 7) {
+            var doorCase = new StarTowerCase(CaseType.OpenDoor);
+            doorCase.setFloorId(this.getFloor() + 1);
+
+            // Set room type of next room
+            var nextStage = this.getNextStageData();
+            if (nextStage != null) {
+                doorCase.setRoomType(nextStage.getRoomType());
+            }
+
+            // Add case
+            this.addCase(room.getMutableCases(), doorCase);
+        }
         
         // Done
         return rsp;

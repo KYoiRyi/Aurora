@@ -24,6 +24,8 @@ public class Config {
     public RemoteCommand remoteCommand = new RemoteCommand();
 
     public int customDataVersion = 0;
+    public String region = "global";
+    
     public String resourceDir = "./resources";
     public String webFilesDir = "./web";
     public String patchListPath = "./patchlist.json";

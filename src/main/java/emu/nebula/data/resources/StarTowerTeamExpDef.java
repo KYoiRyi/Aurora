@@ -5,13 +5,12 @@ import emu.nebula.data.ResourceType;
 import lombok.Getter;
 
 @Getter
-@ResourceType(name = "StarTowerStage.json")
-public class StarTowerStageDef extends BaseDef {
+@ResourceType(name = "StarTowerTeamExp.json")
+public class StarTowerTeamExpDef extends BaseDef {
     private int Id;
-    private int Stage;
-    private int Floor;
-    private int RoomType;
-    private int InteriorCurrencyQuantity;
+    private int GroupId;
+    private int Level;
+    private int NeedExp;
     
     @Override
     public int getId() {

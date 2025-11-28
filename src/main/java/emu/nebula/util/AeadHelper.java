@@ -18,6 +18,10 @@ import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
 import org.bouncycastle.crypto.params.*;
 
+import emu.nebula.Nebula;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 // Official Name: AeadTool
 public class AeadHelper {
     private static final ThreadLocal<SecureRandom> random = new ThreadLocal<>() {
@@ -27,9 +31,34 @@ public class AeadHelper {
         }
     };
     
-    public static final byte[] serverGarbleKey = "xNdVF^XTa6T3HCUATMQ@sKMLzAw&%L!3".getBytes(StandardCharsets.US_ASCII); // Global
-    public static final byte[] serverMetaKey = "ma5Dn2FhC*Xhxy%c".getBytes(StandardCharsets.US_ASCII); // Global
-                    
+    public static byte[] serverGarbleKey = null;
+    public static byte[] serverMetaKey = null;
+    
+    private static final Object2ObjectMap<String, String[]> keys = new Object2ObjectOpenHashMap<>();
+    
+    public static void loadKeys() {
+        // Load keys
+        keys.put("global", new String[] {
+            "ma5Dn2FhC*Xhxy%c",
+            "xNdVF^XTa6T3HCUATMQ@sKMLzAw&%L!3"
+        });
+        keys.put("kr", new String[] {
+            "U9cjHuwGDDx&$drn",
+            "25hdume9H#*6hHn@d9hSF7tekTwN#JYj"
+        });
+        
+        // Get key data
+        var keyData = keys.get(Nebula.getConfig().getRegion().toLowerCase());
+        
+        if (keyData == null) {
+            keyData = keys.get("global"); // Default region
+        }
+        
+        // Set keys
+        serverMetaKey = keyData[0].getBytes(StandardCharsets.US_ASCII);
+        serverGarbleKey = keyData[1].getBytes(StandardCharsets.US_ASCII);
+    }
+    
     public static byte[] generateBytes(int size) {
         byte[] iv = new byte[size];
         random.get().nextBytes(iv);

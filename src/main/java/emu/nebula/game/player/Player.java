@@ -44,6 +44,7 @@ import emu.nebula.proto.Public.QuestType;
 import emu.nebula.proto.Public.Story;
 import emu.nebula.proto.Public.WorldClass;
 import emu.nebula.proto.Public.WorldClassRewardState;
+import emu.nebula.util.Utils;
 import emu.nebula.proto.Public.Title;
 
 import lombok.Getter;
@@ -201,7 +202,17 @@ public class Player implements GameDatabaseObject {
     public boolean hasSession() {
         return this.session != null;
     }
+
+    public void setLevel(int level) {
+        this.level = level;
+        Nebula.getGameDatabase().update(this, this.getUid(), "level", this.level);
+    }
     
+    public void setExp(int exp) {
+        this.exp = exp;
+        Nebula.getGameDatabase().update(this, this.getUid(), "exp", this.exp);
+    }
+
     public void setRemoteToken(String token) {
         // Skip if tokens are the same
         if (this.remoteToken == null) {
@@ -582,8 +593,13 @@ public class Player implements GameDatabaseObject {
             return;
         }
         
+        // Check if week has changed (Resets on monday)
+        // TODO add a config option
+        int curWeek = Utils.getWeeks(this.getLastEpochDay());
+        boolean hasWeekChanged = Nebula.getGameContext().getEpochWeeks() > curWeek;
+        
         // Reset dailies
-        this.resetDailies(false);
+        this.resetDailies(hasWeekChanged);
         
         // Update last epoch day
         this.lastEpochDay = Nebula.getGameContext().getEpochDays();

@@ -22,7 +22,7 @@ For any extra support, questions, or discussions, check out our [Discord](https:
 - Bounty Trials
 - Menance Arena
 - Proving grounds
-- Catacylsm Survivor (talents not fully working, score not calculated properly)
+- Catacylsm Survivor (talents not fully working)
 - Boss Blitz
 
 ### Not implemented
@@ -66,7 +66,15 @@ class Handlers
 ```
 
 4. If `autoCreateAccount` is set to true in the config, then you can skip this step. Otherwise, type `/account create [account email]` in the server console to create an account.
-5. Login with your account name, the code field is ignored by the server and can be set to anything.
+5. Login with your account email, the code field is ignored by the server and can be set to anything.
+
+If you are not on the global client, `.stellasora.global` in the fiddlerscript may need to be changed to match the endpoint your client connects to.
+
+### Supported regions
+
+Nebula supports the global client by default. If you want to switch regions, you need to change the `customDataVersion` and `region` fields in the Nebula config. The `customDataVersion` field should match the the data version of your client, which is usually the last number of your client's version string (top left of your login screen). Example: 1.0.0.42 = data version 42.
+
+Current supported regions: `global`, `kr`
 
 ### Server commands
 Server commands need to be run in the server console OR in the signature edit menu of your profile.
@@ -78,6 +86,7 @@ Server commands need to be run in the server console OR in the signature edit me
 !disc [all | {discId}] lv(level) a(ascension) c(crescendo level) = Changes the properties of the targeted discs.
 !give [item id] x[amount] = Gives the targeted player an item through the mail.
 !giveall [characters | discs | materials] = Gives the targeted player items.
+!level (level) = Sets the player level
 !mail = Sends the targeted player a system mail.
 !reload = Reloads the server config.
 ```

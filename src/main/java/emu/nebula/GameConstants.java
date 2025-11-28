@@ -57,7 +57,7 @@ public class GameConstants {
     // Helper functions
     
     public static String getGameVersion() {
-        return VERSION + "." + getDataVersion();
+        return VERSION + "." + getDataVersion() + " (" + Nebula.getConfig().getRegion().toUpperCase() + ")";
     }
     
     public static int getDataVersion() {

@@ -58,12 +58,13 @@ tmp/
 .DS_Store
 .directory
 
-# Generated/resource/log/plugins folders
+# Generated/resource/log/plugins/etc folders
 /logs
 /plugins
 /proto
 /resources
 /web
+/StellaSoraData
 
 # Compiled
 /*.jar

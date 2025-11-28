@@ -17,6 +17,7 @@ import emu.nebula.game.GameContext;
 import emu.nebula.net.PacketHelper;
 import emu.nebula.plugin.PluginManager;
 import emu.nebula.server.HttpServer;
+import emu.nebula.util.AeadHelper;
 import emu.nebula.util.Handbook;
 import emu.nebula.util.JsonUtils;
 import lombok.Getter;
@@ -42,8 +43,9 @@ public class Nebula {
     @Getter private static PluginManager pluginManager;
     
     public static void main(String[] args) {
-        // Load config first
+        // Load config + keys first
         Nebula.loadConfig();
+        AeadHelper.loadKeys();
         
         // Start Server
         Nebula.getLogger().info("Starting Nebula " + getJarVersion());
@@ -107,7 +109,7 @@ public class Nebula {
         
         // Start servers
         try {
-            // Always run http server as it is needed by for dispatch and gateserver
+            // Always run http server as it is needed by for login and game server
             httpServer = new HttpServer(serverType);
             httpServer.start();
         } catch (Exception exception) {
