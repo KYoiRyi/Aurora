@@ -35,6 +35,7 @@ echo.
 echo Stopping any existing mitmproxy processes...
 taskkill /f /im mitmdump.exe 2>nul
 taskkill /f /im mitmproxy.exe 2>nul
+taskkill /f /im mitmweb.exe 2>nul
 timeout /t 2 /nobreak >nul
 
 :: Enable system proxy with simpler method
@@ -70,7 +71,7 @@ echo.
 
 :: Start mitmdump with alternative port if 8080 is occupied
 echo Trying to start mitmproxy on port 8080...
-mitmdump -s scripts/nebula_mitmproxy.py --set confdir=~/.mitmproxy --mode regular@8080 2>nul
+mitmweb -s scripts/nebula_mitmproxy.py --set confdir=~/.mitmproxy --mode regular@8080 2>nul
 if %errorlevel% neq 0 (
     echo Port 8080 is occupied, trying alternative port 8081...
     echo Updating proxy settings to use port 8081...
@@ -78,7 +79,7 @@ if %errorlevel% neq 0 (
     rundll32.exe user32.dll,UpdatePerUserSystemParameters
     
     echo Starting mitmproxy on port 8081...
-    mitmdump -s scripts/nebula_mitmproxy.py --set confdir=~/.mitmproxy --mode regular@8081
+    mitmweb -s scripts/nebula_mitmproxy.py --set confdir=~/.mitmproxy --mode regular@8081
 )
 
 :: After user presses Ctrl+C, automatically execute the following
