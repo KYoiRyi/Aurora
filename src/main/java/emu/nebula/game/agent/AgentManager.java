@@ -8,6 +8,7 @@ import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import emu.nebula.data.GameData;
 import emu.nebula.database.GameDatabaseObject;
+import emu.nebula.game.character.GameCharacter;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
@@ -58,13 +59,23 @@ public class AgentManager extends PlayerManager implements GameDatabaseObject {
         }
         
         // Make sure we own the characters
+        var characters = new ArrayList<GameCharacter>();
+        
         for (int charId : charIds) {
-            if (!getPlayer().getCharacters().hasCharacter(charId)) {
+            var character = getPlayer().getCharacters().getCharacterById(charId);
+            
+            // Also check if character fits the commission level requirement
+            if (character == null || character.getLevel() < data.getLevel()) {
                 return null;
             }
+            
+            characters.add(character);
         }
         
-        // TODO verify char tags for rewards
+        // Check char tags
+        if (!data.hasTags(characters)) {
+            return null;
+        }
         
         // Create agent
         var agent = new Agent(data, processTime, charIds.toArray());
@@ -139,12 +150,30 @@ public class AgentManager extends PlayerManager implements GameDatabaseObject {
                 continue;
             }
             
-            // Create rewards
-            var rewards = duration.getRewards().generate();
-            result.setRewards(rewards);
+            // Check if we had extra tags
+            var characters = new ArrayList<GameCharacter>();
             
-            // Add to inventory
-            this.getPlayer().getInventory().addItems(rewards, change);
+            for (int charId : agent.getCharIds()) {
+                var character = getPlayer().getCharacters().getCharacterById(charId);
+                if (character == null) continue;
+                
+                characters.add(character);
+            }
+            
+            // Create rewards
+            result.setRewards(duration.getRewards().generate());
+            
+            // Add rewards to inventory
+            this.getPlayer().getInventory().addItems(result.getRewards(), change);
+            
+            // Add bonus rewards if we meet the requirements
+            if (data.hasExtraTags(characters)) {
+                // Get bonus rewards
+                result.setBonus(duration.getBonus().generate());
+                
+                // Add rewards to inventory
+                this.getPlayer().getInventory().addItems(result.getBonus(), change);
+            }
         }
         
         // Set results in change info
