@@ -46,6 +46,11 @@ public class Nebula {
         // Load config + keys first
         Nebula.loadConfig();
         AeadHelper.loadKeys();
+        try {
+            emu.nebula.update.AutoUpdater.runIfEnabled();
+        } catch (Exception e) {
+            Nebula.getLogger().error("Auto update error", e);
+        }
         
         // Start Server
         Nebula.getLogger().info("Starting Nebula " + getJarVersion());

@@ -30,6 +30,11 @@ public class Config {
     public String webFilesDir = "./web";
     public String patchListPath = "./patchlist.json";
 
+    public boolean autoUpdate = false;
+    public String updateUrl = "https://github.com/Hiro420/StellaSoraData.git";
+    public String gameVersion = "";
+    public boolean officialDataFetch = false;
+
     @Getter
     public static class DatabaseInfo {
         public String uri = "mongodb://localhost:27017";

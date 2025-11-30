@@ -169,6 +169,7 @@ public class HttpServer {
         // https://nova-static.stellasora.global/
         getApp().get("/meta/serverlist.html", new MetaServerlistHandler(this));
         getApp().get("/meta/win.html", new MetaWinHandler(this));
+        getApp().get("/res/win/{version}/*", new ResourceProxyHandler(this));
 
         getApp().post("/api/command", new RemoteHandler());
 

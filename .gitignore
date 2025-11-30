@@ -152,3 +152,6 @@ celerybeat-schedule
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Test folder
+test/
