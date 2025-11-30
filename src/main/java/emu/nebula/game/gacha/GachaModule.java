@@ -3,6 +3,7 @@ package emu.nebula.game.gacha;
 import emu.nebula.data.GameData;
 import emu.nebula.game.GameContext;
 import emu.nebula.game.GameContextModule;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.inventory.ItemAcquireMap;
 import emu.nebula.game.inventory.ItemParamMap;
 import emu.nebula.game.inventory.ItemType;
@@ -163,6 +164,9 @@ public class GachaModule extends GameContextModule {
         // Add history
         var log = new GachaHistoryLog(data.getGachaType(), results);
         player.getGachaManager().addGachaHistory(log);
+        
+        // Trigger achievements
+        player.triggerAchievement(AchievementCondition.GachaTotal, amount);
         
         // Complete
         return new GachaResult(info, change, results);

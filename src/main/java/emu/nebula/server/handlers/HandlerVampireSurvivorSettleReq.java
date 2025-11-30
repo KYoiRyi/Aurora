@@ -32,6 +32,9 @@ public class HandlerVampireSurvivorSettleReq extends NetHandler {
         // Settle game
         session.getPlayer().getVampireSurvivorManager().settle(victory, score);
         
+        // Handle client events for achievements
+        session.getPlayer().getAchievementManager().handleClientEvents(req.getEvents());
+        
         // Build response
         var rsp = VampireSurvivorSettleResp.newInstance();
         

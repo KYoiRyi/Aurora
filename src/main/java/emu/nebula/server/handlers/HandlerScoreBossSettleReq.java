@@ -22,6 +22,9 @@ public class HandlerScoreBossSettleReq extends NetHandler {
             return session.encodeMsg(NetMsgId.score_boss_settle_failed_ack);
         }
         
+        // Handle client events for achievements
+        session.getPlayer().getAchievementManager().handleClientEvents(req.getEvents());
+        
         // Build response
         var rsp = ScoreBossSettleResp.newInstance();
         

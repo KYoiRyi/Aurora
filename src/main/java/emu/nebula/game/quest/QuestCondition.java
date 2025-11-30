@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 
-public enum QuestCondType {
+public enum QuestCondition {
     BattleTotal                                                                   (3),
     BattlesTotalWithPartner                                                       (4),
     CharacterAcquireQuantityRarityAndAdvancement                                  (6),
@@ -126,19 +126,19 @@ public enum QuestCondType {
 
     @Getter
     private final int value;
-    private final static Int2ObjectMap<QuestCondType> map = new Int2ObjectOpenHashMap<>();
+    private final static Int2ObjectMap<QuestCondition> map = new Int2ObjectOpenHashMap<>();
 
     static {
-        for (QuestCondType type : QuestCondType.values()) {
+        for (QuestCondition type : QuestCondition.values()) {
             map.put(type.getValue(), type);
         }
     }
 
-    private QuestCondType(int value) {
+    private QuestCondition(int value) {
         this.value = value;
     }
 
-    public static QuestCondType getByValue(int value) {
+    public static QuestCondition getByValue(int value) {
         return map.get(value);
     }
 }

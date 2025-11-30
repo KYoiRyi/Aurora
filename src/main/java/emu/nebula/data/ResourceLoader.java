@@ -10,6 +10,7 @@ import org.reflections.Reflections;
 import emu.nebula.util.JsonUtils;
 import emu.nebula.util.Utils;
 import emu.nebula.Nebula;
+import emu.nebula.game.achievement.AchievementHelper;
 
 public class ResourceLoader {
     private static boolean loaded = false;
@@ -21,6 +22,9 @@ public class ResourceLoader {
         
         // Load
         loadResources();
+        
+        // Add hardcoded achievements params
+        AchievementHelper.fixParams();
         
         // Done
         loaded = true;

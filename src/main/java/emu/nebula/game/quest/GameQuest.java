@@ -55,7 +55,7 @@ public class GameQuest {
         return 0;
     }
 
-    public boolean trigger(QuestCondType condition, int progress, int param) {
+    public boolean trigger(QuestCondition condition, int progress, int param) {
         // Sanity check
         if (this.isComplete()) {
             return false;

@@ -5,6 +5,7 @@ import java.util.List;
 
 import emu.nebula.Nebula;
 import emu.nebula.data.GameData;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerManager;
 import emu.nebula.game.player.PlayerProgress;
@@ -173,6 +174,9 @@ public class VampireSurvivorManager extends PlayerManager {
         
         // Clear game
         this.game = null;
+        
+        // Trigger achievement
+        getPlayer().triggerAchievement(AchievementCondition.VampireWithSpecificClearTotal, 1);
     }
 
     private void updateSavedCards() {

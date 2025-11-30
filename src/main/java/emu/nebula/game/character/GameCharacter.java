@@ -18,10 +18,11 @@ import emu.nebula.data.GameData;
 import emu.nebula.data.resources.CharacterDef;
 import emu.nebula.data.resources.TalentGroupDef;
 import emu.nebula.database.GameDatabaseObject;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.inventory.ItemParamMap;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.net.NetMsgId;
 import emu.nebula.proto.Notify.Skin;
 import emu.nebula.proto.Notify.SkinChange;
@@ -186,7 +187,7 @@ public class GameCharacter implements GameDatabaseObject {
         // Check if we leveled up
         if (this.level > oldLevel) {
             // Trigger quest
-            this.getPlayer().triggerQuest(QuestCondType.CharacterUpTotal, this.level - oldLevel);
+            this.getPlayer().triggerQuest(QuestCondition.CharacterUpTotal, this.level - oldLevel);
         }
         
         // Save to database
@@ -459,8 +460,9 @@ public class GameCharacter implements GameDatabaseObject {
         // Add affinity exp
         this.addAffinityExp(exp);
         
-        // Trigger quest
-        this.getPlayer().triggerQuest(QuestCondType.GiftGiveTotal, count);
+        // Trigger quest/achievement
+        this.getPlayer().triggerQuest(QuestCondition.GiftGiveTotal, count);
+        this.getPlayer().triggerAchievement(AchievementCondition.GiftGiveTotal, count);
         
         // Remove items
         var change = this.getPlayer().getInventory().removeItems(items);

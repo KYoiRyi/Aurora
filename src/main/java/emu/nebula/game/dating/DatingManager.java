@@ -1,10 +1,11 @@
 package emu.nebula.game.dating;
 
 import emu.nebula.data.GameData;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.character.GameCharacter;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerManager;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import lombok.Getter;
 
 @Getter
@@ -26,8 +27,9 @@ public class DatingManager extends PlayerManager {
         // Set landmark + character
         this.game = new DatingGame(character, data);
         
-        // Trigger quest
-        this.getPlayer().triggerQuest(QuestCondType.CharactersDatingTotal, 1);
+        // Trigger quest/achievement
+        this.getPlayer().triggerQuest(QuestCondition.CharactersDatingTotal, 1);
+        this.getPlayer().triggerAchievement(AchievementCondition.CharactersDatingTotal, 1);
         
         // Success
         return this.game;

@@ -11,7 +11,7 @@ import java.util.List;
 
 import emu.nebula.data.GameData;
 import emu.nebula.game.inventory.ItemParamMap;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.region_boss_level_sweep_req)
@@ -31,7 +31,7 @@ public class HandlerRegionBossLevelSweepReq extends NetHandler {
         // Sweep
         var change = session.getPlayer().getInstanceManager().sweepInstance(
                 data,
-                QuestCondType.RegionBossClearTotal,
+                QuestCondition.RegionBossClearTotal,
                 session.getPlayer().getProgress().getRegionBossLog(),
                 0,
                 req.getTimes()

@@ -10,6 +10,8 @@ import lombok.Getter;
 @ResourceType(name = "StarTower.json")
 public class StarTowerDef extends BaseDef {
     private int Id;
+    private int GroupId;
+    private int Difficulty;
     private int[] FloorNum;
     
     private transient int maxFloors;

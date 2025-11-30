@@ -11,19 +11,20 @@ public class QuestHelper {
     @Getter
     private static final Int2ObjectMap<QuestParams> battlePassQuestParams = new Int2ObjectOpenHashMap<>();
     
+    // Put params here
     static {
-        battlePassQuestParams.put(1001, new QuestParams(QuestCondType.LoginTotal, 1));
-        battlePassQuestParams.put(1002, new QuestParams(QuestCondType.EnergyDeplete, 160));
-        battlePassQuestParams.put(1003, new QuestParams(QuestCondType.BattleTotal, 6));
-        battlePassQuestParams.put(1004, new QuestParams(QuestCondType.QuestWithSpecificType, 5, QuestType.Daily));
-        battlePassQuestParams.put(2001, new QuestParams(QuestCondType.TowerEnterFloor, 1));
-        battlePassQuestParams.put(2002, new QuestParams(QuestCondType.WeekBoosClearSpecificDifficultyAndTotal, 3));
-        battlePassQuestParams.put(2003, new QuestParams(QuestCondType.BattleTotal, 20));
-        battlePassQuestParams.put(2004, new QuestParams(QuestCondType.LoginTotal, 5));
-        battlePassQuestParams.put(2005, new QuestParams(QuestCondType.AgentFinishTotal, 3));
-        battlePassQuestParams.put(2006, new QuestParams(QuestCondType.ItemsDeplete, 100000, 1));
-        battlePassQuestParams.put(2007, new QuestParams(QuestCondType.GiftGiveTotal, 5));
-        battlePassQuestParams.put(2008, new QuestParams(QuestCondType.EnergyDeplete, 1200));
+        battlePassQuestParams.put(1001, new QuestParams(QuestCondition.LoginTotal, 1));
+        battlePassQuestParams.put(1002, new QuestParams(QuestCondition.EnergyDeplete, 160));
+        battlePassQuestParams.put(1003, new QuestParams(QuestCondition.BattleTotal, 6));
+        battlePassQuestParams.put(1004, new QuestParams(QuestCondition.QuestWithSpecificType, 5, QuestType.Daily));
+        battlePassQuestParams.put(2001, new QuestParams(QuestCondition.TowerEnterFloor, 1));
+        battlePassQuestParams.put(2002, new QuestParams(QuestCondition.WeekBoosClearSpecificDifficultyAndTotal, 3));
+        battlePassQuestParams.put(2003, new QuestParams(QuestCondition.BattleTotal, 20));
+        battlePassQuestParams.put(2004, new QuestParams(QuestCondition.LoginTotal, 5));
+        battlePassQuestParams.put(2005, new QuestParams(QuestCondition.AgentFinishTotal, 3));
+        battlePassQuestParams.put(2006, new QuestParams(QuestCondition.ItemsDeplete, 100000, 1));
+        battlePassQuestParams.put(2007, new QuestParams(QuestCondition.GiftGiveTotal, 5));
+        battlePassQuestParams.put(2008, new QuestParams(QuestCondition.EnergyDeplete, 1200));
     }
     
     @Getter
@@ -40,7 +41,7 @@ public class QuestHelper {
             this(cond, new int[] {param});
         }
         
-        public QuestParams(QuestCondType cond, int... params) {
+        public QuestParams(QuestCondition cond, int... params) {
             this(cond.getValue(), params);
         }
     }

@@ -14,7 +14,7 @@ import emu.nebula.database.GameDatabaseObject;
 import emu.nebula.game.inventory.ItemParamMap;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.proto.Public.Disc;
 import emu.nebula.proto.PublicStarTower.StarTowerDisc;
 
@@ -145,7 +145,7 @@ public class GameDisc implements GameDatabaseObject {
         // Check if we leveled up
         if (this.level > oldLevel) {
             // Trigger quest
-            this.getPlayer().triggerQuest(QuestCondType.DiscStrengthenTotal, this.level - oldLevel);
+            this.getPlayer().triggerQuest(QuestCondition.DiscStrengthenTotal, this.level - oldLevel);
         }
         
         // Save to database

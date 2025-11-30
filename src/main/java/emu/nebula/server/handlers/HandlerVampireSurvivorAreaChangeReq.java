@@ -24,6 +24,9 @@ public class HandlerVampireSurvivorAreaChangeReq extends NetHandler {
         // Calculate score for area
         game.settleArea(req.getTime(), req.getKillCount().toArray());
         
+        // Handle client events for achievements
+        session.getPlayer().getAchievementManager().handleClientEvents(req.getEvents());
+        
         // Encode and send
         return session.encodeMsg(NetMsgId.vampire_survivor_area_change_succeed_ack);
     }

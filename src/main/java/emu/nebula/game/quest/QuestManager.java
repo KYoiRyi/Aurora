@@ -114,7 +114,7 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
         this.save();
     }
 
-    public synchronized void trigger(QuestCondType condition, int progress, int param) {
+    public synchronized void trigger(QuestCondition condition, int progress, int param) {
         for (var quest : getQuests().values()) {
             // Try to trigger quest
             boolean result = quest.trigger(condition, progress, param);
@@ -194,7 +194,7 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
         }
         
         // Trigger quest
-        this.getPlayer().triggerQuest(QuestCondType.QuestWithSpecificType, claimList.size(), QuestType.Daily);
+        this.getPlayer().triggerQuest(QuestCondition.QuestWithSpecificType, claimList.size(), QuestType.Daily);
         
         // Success
         return change.setSuccess(true);
@@ -305,7 +305,7 @@ public class QuestManager extends PlayerManager implements GameDatabaseObject {
         Nebula.getGameDatabase().update(this, this.getUid(), "hasDailyReward", this.hasDailyReward);
         
         // Trigger quest
-        this.getPlayer().triggerQuest(QuestCondType.DailyShopReceiveShopTotal, 1);
+        this.getPlayer().triggerQuest(QuestCondition.DailyShopReceiveShopTotal, 1);
         
         // Success
         return change.setSuccess(true);

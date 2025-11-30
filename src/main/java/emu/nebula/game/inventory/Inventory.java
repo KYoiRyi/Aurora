@@ -11,7 +11,7 @@ import emu.nebula.data.resources.MallShopDef;
 import emu.nebula.data.resources.ResidentGoodsDef;
 import emu.nebula.database.GameDatabaseObject;
 import emu.nebula.game.player.PlayerManager;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.net.NetMsgId;
 import emu.nebula.proto.Notify.Skin;
 import emu.nebula.proto.Public.Honor;
@@ -464,9 +464,9 @@ public class Inventory extends PlayerManager implements GameDatabaseObject {
         
         // Trigger quest
         if (amount > 0) {
-            this.getPlayer().triggerQuest(QuestCondType.ItemsAdd, amount, id);
+            this.getPlayer().triggerQuest(QuestCondition.ItemsAdd, amount, id);
         } else {
-            this.getPlayer().triggerQuest(QuestCondType.ItemsDeplete, Math.abs(amount), id);
+            this.getPlayer().triggerQuest(QuestCondition.ItemsDeplete, Math.abs(amount), id);
         }
         
         //

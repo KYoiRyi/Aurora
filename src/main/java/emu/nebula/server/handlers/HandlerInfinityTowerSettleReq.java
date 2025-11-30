@@ -32,6 +32,9 @@ public class HandlerInfinityTowerSettleReq extends NetHandler {
             nextLevel = 0;
         }
         
+        // Handle client events for achievements
+        session.getPlayer().getAchievementManager().handleClientEvents(req.getEvents());
+        
         // Build response
         var rsp = InfinityTowerSettleResp.newInstance()
                 .setNextLevelId(nextLevel)

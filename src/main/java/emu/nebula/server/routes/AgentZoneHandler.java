@@ -162,7 +162,13 @@ public class AgentZoneHandler implements Handler {
             ctx.status(200);
             ctx.result(result);
             
+            // Clear header
             ctx.res().setHeader("Content-Type", null);
+            
+            // Handle post response events
+            if (session != null) {
+                session.afterResponse();
+            }
         }
     }
     

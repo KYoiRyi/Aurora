@@ -15,9 +15,10 @@ For any extra support, questions, or discussions, check out our [Discord](https:
 - Battle pass
 - Gacha
 - Friend system (sending energy not implemented)
-- Shop (using only in-game currency)
+- Shop (only in-game currency supported)
 - Commissions
 - Heartlink
+- Achievements (not all of them are scripted properly)
 - Monoliths (completeable but many other features missing)
 - Bounty Trials
 - Menance Arena
@@ -26,7 +27,6 @@ For any extra support, questions, or discussions, check out our [Discord](https:
 - Boss Blitz
 
 ### Not implemented
-- Achievements
 - Events
 
 # Running the server and client

@@ -8,11 +8,12 @@ import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import emu.nebula.data.GameData;
 import emu.nebula.database.GameDatabaseObject;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.character.GameCharacter;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import lombok.Getter;
 import us.hebi.quickbuf.RepeatedInt;
 
@@ -84,7 +85,7 @@ public class AgentManager extends PlayerManager implements GameDatabaseObject {
         this.getAgents().put(agent.getId(), agent);
         
         // Quest
-        this.getPlayer().triggerQuest(QuestCondType.AgentApplyTotal, 1);
+        this.getPlayer().triggerQuest(QuestCondition.AgentApplyTotal, 1);
         
         // Success
         return agent;
@@ -182,8 +183,9 @@ public class AgentManager extends PlayerManager implements GameDatabaseObject {
         // Save to database
         this.save();
         
-        // Quest
-        this.getPlayer().triggerQuest(QuestCondType.AgentFinishTotal, list.size());
+        // Quest + Achievements
+        getPlayer().triggerQuest(QuestCondition.AgentFinishTotal, list.size());
+        getPlayer().triggerAchievement(AchievementCondition.AgentWithSpecificFinishTotal, list.size());
         
         // Success
         return change.setSuccess(true);

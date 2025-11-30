@@ -6,7 +6,6 @@ import java.util.List;
 import dev.morphia.annotations.Entity;
 
 import emu.nebula.GameConstants;
-import emu.nebula.Nebula;
 import emu.nebula.data.GameData;
 import emu.nebula.data.resources.PotentialDef;
 import emu.nebula.data.resources.StarTowerDef;
@@ -552,6 +551,8 @@ public class StarTowerGame {
                 this.addRandomSubNoteSkills(subNoteSkills, change);
             }
 
+            // Handle client events for achievements
+            getPlayer().getAchievementManager().handleClientEvents(proto.getVictory().getEvents());
         } else {
             // Handle defeat
             // TODO
@@ -563,6 +564,7 @@ public class StarTowerGame {
         // Set change
         rsp.setChange(change.toProto());
         
+        // Return response for the player
         return rsp;
     }
 
@@ -742,7 +744,7 @@ public class StarTowerGame {
     
     public StarTowerInteractResp settle(StarTowerInteractResp rsp) {
         // End game
-        this.getManager().endGame();
+        this.getManager().endGame(true);
         
         // Settle info
         var settle = rsp.getMutableSettle()

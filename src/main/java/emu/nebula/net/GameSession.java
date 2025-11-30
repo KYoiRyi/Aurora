@@ -249,4 +249,15 @@ public class GameSession {
 
         return proto;
     }
+    
+    // Misc network
+    
+    /**
+     * Called AFTER a response is sent to the client
+     */
+    public void afterResponse() {
+        if (this.getPlayer() != null) {
+            this.getPlayer().afterResponse();
+        }
+    }
 }

@@ -7,7 +7,7 @@ import emu.nebula.proto.SkillInstanceSettle.SkillInstanceSettleResp;
 import emu.nebula.net.HandlerId;
 import emu.nebula.data.GameData;
 import emu.nebula.game.instance.InstanceSettleData;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.skill_instance_settle_req)
@@ -30,13 +30,16 @@ public class HandlerSkillInstanceSettleReq extends NetHandler {
         // Settle instance
         var changes = player.getInstanceManager().settleInstance(
                 data,
-                QuestCondType.SkillInstanceClearTotal,
+                QuestCondition.SkillInstanceClearTotal,
                 player.getProgress().getSkillInstanceLog(),
                 "skillInstanceLog",
                 req.getStar()
         );
         
         var settleData = (InstanceSettleData) changes.getExtraData();
+        
+        // Handle client events for achievements
+        session.getPlayer().getAchievementManager().handleClientEvents(req.getEvents());
         
         // Create response
         var rsp = SkillInstanceSettleResp.newInstance()

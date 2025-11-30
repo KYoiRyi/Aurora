@@ -3,11 +3,12 @@ package emu.nebula.game.tower;
 import emu.nebula.Nebula;
 import emu.nebula.data.GameData;
 import emu.nebula.data.resources.StarTowerGrowthNodeDef;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
 import emu.nebula.game.player.PlayerProgress;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.proto.StarTowerApply.StarTowerApplyReq;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -207,24 +208,44 @@ public class StarTowerManager extends PlayerManager {
         this.game = new StarTowerGame(this, data, formation, req);
         
         // Trigger quest
-        this.getPlayer().triggerQuest(QuestCondType.TowerEnterFloor, 1);
+        this.getPlayer().triggerQuest(QuestCondition.TowerEnterFloor, 1);
         
         // Success
         return change.setExtraData(this.game);
     }
 
-    public StarTowerGame endGame() {
+    public StarTowerGame endGame(boolean victory) {
         // Cache instance
         var game = this.game;
         
-        if (game != null) {
-            // Set last build
-            this.lastBuild = game.getBuild();
-            
-            // Clear instance
-            this.game = null;
+        if (game == null) {
+            return null;
         }
         
+        // Set last build
+        this.lastBuild = game.getBuild();
+        
+        // Handle victory events
+        if (victory) {
+            // Trigger achievements
+            this.getPlayer().triggerAchievement(
+                AchievementCondition.TowerClearSpecificGroupIdAndDifficulty,
+                1,
+                game.getData().getGroupId(),
+                game.getData().getDifficulty()
+            );
+            this.getPlayer().triggerAchievement(
+                AchievementCondition.TowerClearSpecificLevelWithDifficultyAndTotal,
+                1,
+                game.getData().getId(),
+                game.getData().getDifficulty()
+            );
+        }
+        
+        // Clear game instance
+        this.game = null;
+        
+        // Return game
         return game;
     }
     

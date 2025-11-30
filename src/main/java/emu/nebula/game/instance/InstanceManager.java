@@ -8,7 +8,7 @@ import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
 import emu.nebula.game.player.PlayerProgress;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import lombok.Getter;
@@ -35,7 +35,7 @@ public class InstanceManager extends PlayerManager {
         return this.getPlayer().getProgress();
     }
     
-    public PlayerChangeInfo settleInstance(InstanceData data, QuestCondType questCondition, Int2IntMap log, String logName, int star) {
+    public PlayerChangeInfo settleInstance(InstanceData data, QuestCondition questCondition, Int2IntMap log, String logName, int star) {
         // Calculate settle data
         var settleData = new InstanceSettleData();
         
@@ -64,7 +64,7 @@ public class InstanceManager extends PlayerManager {
             
             // Quest triggers
             this.getPlayer().triggerQuest(questCondition, 1);
-            this.getPlayer().triggerQuest(QuestCondType.BattleTotal, 1);
+            this.getPlayer().triggerQuest(QuestCondition.BattleTotal, 1);
         }
         
         // Set extra data
@@ -74,7 +74,7 @@ public class InstanceManager extends PlayerManager {
         return change.setSuccess(true);
     }
     
-    public PlayerChangeInfo sweepInstance(InstanceData data, QuestCondType questCondition, Int2IntMap log, int rewardType, int count) {
+    public PlayerChangeInfo sweepInstance(InstanceData data, QuestCondition questCondition, Int2IntMap log, int rewardType, int count) {
         // Sanity check count
         if (count <= 0) {
             return null;
@@ -132,7 +132,7 @@ public class InstanceManager extends PlayerManager {
         
         // Quest triggers
         this.getPlayer().triggerQuest(questCondition, count);
-        this.getPlayer().triggerQuest(QuestCondType.BattleTotal, count);
+        this.getPlayer().triggerQuest(QuestCondition.BattleTotal, count);
         
         // Success
         return change.setSuccess(true);

@@ -11,7 +11,7 @@ import java.util.List;
 
 import emu.nebula.data.GameData;
 import emu.nebula.game.inventory.ItemParamMap;
-import emu.nebula.game.quest.QuestCondType;
+import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.net.GameSession;
 
 @HandlerId(NetMsgId.daily_instance_raid_req)
@@ -36,7 +36,7 @@ public class HandlerDailyInstanceRaidReq extends NetHandler {
         // Sweep
         var change = session.getPlayer().getInstanceManager().sweepInstance(
                 data,
-                QuestCondType.DailyInstanceClearTotal,
+                QuestCondition.DailyInstanceClearTotal,
                 session.getPlayer().getProgress().getDailyInstanceLog(),
                 req.getRewardType(),
                 req.getTimes()
