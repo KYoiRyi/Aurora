@@ -1,0 +1,179 @@
+package emu.nebula.command.commands;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import emu.nebula.command.Command;
+import emu.nebula.command.CommandArgs;
+import emu.nebula.command.CommandHandler;
+import emu.nebula.data.GameData;
+import emu.nebula.game.character.GameCharacter;
+import emu.nebula.game.character.GameDisc;
+import emu.nebula.game.player.Player;
+import emu.nebula.game.tower.StarTowerBuild;
+import emu.nebula.net.NetMsgId;
+import emu.nebula.util.Utils;
+import lombok.Getter;
+
+@Command(
+    label = "build", 
+    aliases = {"b", "record", "r"}, 
+    permission = "player.build", 
+    requireTarget = true,
+    desc = "!build [char ids...] [disc ids...] [potential ids...] [melody ids...]"
+)
+public class BuildCommand implements CommandHandler {
+
+    @Override
+    public String execute(CommandArgs args) {
+        // Create record
+        var target = args.getTarget();
+        var builder = new StarTowerBuildData(target);
+        
+        // Parse items
+        for (String arg : args.getList()) {
+            int id = Utils.parseSafeInt(arg);
+            int count = 1;
+            
+            this.parseItem(builder, id, count);
+        }
+        
+        if (args.getMap() != null) {
+            for (var entry : args.getMap().int2IntEntrySet()) {
+                int id = entry.getIntKey();
+                int count = entry.getIntValue();
+                
+                this.parseItem(builder, id, count);
+            }
+        }
+        
+        // Check if build is valid
+        if (builder.getCharacters().size() != 3) {
+            return "Record must have 3 different characters";
+        }
+        
+        if (builder.getDiscs().size() < 3 || builder.getDiscs().size() > 6) {
+            return "Record must have 3-6 different discs";
+        }
+        
+        // Create record
+        var build = builder.toBuild();
+        
+        // Add to star tower manager
+        target.getStarTowerManager().getBuilds().put(build.getUid(), build);
+        
+        // Send package to player
+        target.addNextPackage(NetMsgId.st_import_build_notify, build.toProto());
+            
+        // Send result to player
+        return "Created record for " + target.getName() + " (This command make take time to update on the client)";
+    }
+    
+    private void parseItem(StarTowerBuildData builder, int id, int count) {
+        // Get item data
+        var itemData = GameData.getItemDataTable().get(id);
+        if (itemData == null) {
+            return;
+        }
+        
+        // Clamp
+        count = Math.max(count, 1);
+        
+        // Parse by item id
+        switch (itemData.getItemSubType()) {
+            case Char -> {
+                var character = builder.getPlayer().getCharacters().getCharacterById(id);
+                if (character == null || !character.getData().isAvailable()) {
+                    break;
+                }
+                
+                builder.addCharacter(character);
+            }
+            case Disc -> {
+                var disc = builder.getPlayer().getCharacters().getDiscById(id);
+                if (disc == null || !disc.getData().isAvailable()) {
+                    break;
+                }
+                
+                builder.addDisc(disc);
+            }
+            case Potential, SpecificPotential -> {
+                var potentialData = GameData.getPotentialDataTable().get(id);
+                if (potentialData == null) break;
+                
+                int level = Math.min(count, potentialData.getMaxLevel());
+                builder.getBuild().getPotentials().add(id, level);
+            }
+            case SubNoteSkill -> {
+                builder.getBuild().getSubNoteSkills().add(id, count);
+            }
+            default -> {
+                // Ignored
+            }
+        }
+    }
+
+    @Getter
+    private static class StarTowerBuildData {
+        private Player player;
+        private StarTowerBuild build;
+        private List<GameCharacter> characters;
+        private List<GameDisc> discs;
+        
+        public StarTowerBuildData(Player player) {
+            this.player = player;
+            this.build = new StarTowerBuild(player);
+            this.characters = new ArrayList<>();
+            this.discs = new ArrayList<>();
+        }
+        
+        public void addCharacter(GameCharacter character) {
+            if (this.characters.contains(character)) {
+                return;
+            }
+            
+            this.characters.add(character);
+        }
+        
+        public void addDisc(GameDisc disc) {
+            if (this.discs.contains(disc)) {
+                return;
+            }
+            
+            this.discs.add(disc);
+        }
+        
+        public StarTowerBuild toBuild() {
+            // Set characters and discs
+            build.setChars(this.getCharacters());
+            build.setDiscs(this.getDiscs());
+            
+            // Clear character potential cache
+            build.getCharPots().clear();
+            
+            for (int charId : build.getCharIds()) {
+                build.getCharPots().put(charId, 0);
+            }
+            
+            // Add potentials to character potential cache
+            var it = build.getPotentials().iterator();
+            while (it.hasNext()) {
+                var potential = it.next();
+                
+                var data = GameData.getPotentialDataTable().get(potential.getIntKey());
+                if (data == null || !build.getCharPots().containsKey(data.getCharId())) {
+                    it.remove();
+                    continue;
+                }
+                
+                build.getCharPots().add(data.getCharId(), 1);
+            }
+            
+            // Calculate score
+            build.calculateScore();
+            
+            // Return build
+            return build;
+        }
+    }
+}

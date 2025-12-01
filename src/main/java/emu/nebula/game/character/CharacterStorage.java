@@ -8,8 +8,10 @@ import emu.nebula.data.GameData;
 import emu.nebula.data.resources.CharacterDef;
 import emu.nebula.data.resources.DiscDef;
 import emu.nebula.game.player.PlayerManager;
+import emu.nebula.net.NetMsgId;
 import emu.nebula.proto.Public.HandbookInfo;
 import emu.nebula.util.Bitset;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -21,6 +23,10 @@ import lombok.Setter;
 public class CharacterStorage extends PlayerManager {
     private final Int2ObjectMap<GameCharacter> characters;
     private final Int2ObjectMap<GameDisc> discs;
+    
+    // Flags
+    @Setter private boolean hasAddedChar;
+    @Setter private boolean hasAddedDisc;
     
     @Setter private boolean updateCharHandbook;
     @Setter private boolean updateDiscHandbook;
@@ -67,28 +73,19 @@ public class CharacterStorage extends PlayerManager {
         // Save to database
         character.save();
         
-        // Set flag for player to update character skins in their handbook
-        this.setUpdateCharHandbook(true);
-        
         // Add to characters
         this.characters.put(character.getCharId(), character);
+        
+        // Set flags for player to update character skins in their handbook
+        this.setUpdateCharHandbook(true);
+        this.setHasAddedChar(true);
+        
+        // Return character
         return character;
     }
     
     public Collection<GameCharacter> getCharacterCollection() {
         return this.getCharacters().values();
-    }
-    
-    public int getNewPhoneMessageCount() {
-        int count = 0;
-        
-        for (var character : this.getCharacterCollection()) {
-            if (character.getContact().hasNew()) {
-                count++;
-            }
-        }
-        
-        return count;
     }
     
     public HandbookInfo getCharacterHandbook() {
@@ -145,11 +142,14 @@ public class CharacterStorage extends PlayerManager {
         // Save to database
         disc.save();
         
-        // Set flag for player to update discs in their handbook
-        this.setUpdateDiscHandbook(true);
-        
         // Add to discs
         this.discs.put(disc.getDiscId(), disc);
+        
+        // Set flags for player to update discs in their handbook
+        this.setUpdateDiscHandbook(true);
+        this.setHasAddedDisc(true);
+        
+        // Return disc
         return disc;
     }
     
@@ -213,6 +213,73 @@ public class CharacterStorage extends PlayerManager {
         
         // Success
         return change.setExtraData(modifiedDiscs);
+    }
+    
+    // Contacts
+    
+    public int getNewPhoneMessageCount() {
+        int count = 0;
+        
+        for (var character : this.getCharacterCollection()) {
+            if (character.getContact().hasNew()) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+    
+    //
+
+    /**
+     * Checks if we should add next packages for player
+     */
+    public void checkPlayerState() {
+        // Check if we need to trigger character achievements
+        if (this.hasAddedChar) {
+            this.hasAddedChar = false;
+            this.getPlayer().trigger(
+                AchievementCondition.CharactersWithSpecificQuantityAndRarity,
+                getCharacters().size()
+            );
+            this.getPlayer().trigger(
+                AchievementCondition.CharactersWithSpecificQuantityAndRarity,
+                (int) getCharacters().values().stream().filter(GameCharacter::isMaster).count(),
+                1,
+                0
+            );
+        }
+        
+        // Check if we need to send handbook update to player
+        if (this.updateCharHandbook) {
+            this.updateCharHandbook = false;
+            this.getPlayer().addNextPackage(
+                NetMsgId.handbook_change_notify,
+                this.getPlayer().getCharacters().getCharacterHandbook());
+        }
+        
+        // Check if we need to trigger disc achievements
+        if (this.hasAddedChar) {
+            this.hasAddedChar = false;
+            this.getPlayer().trigger(
+                AchievementCondition.DiscAcquireSpecificQuantityAndRarity, 
+                this.getDiscs().size()
+            );
+            this.getPlayer().trigger(
+                AchievementCondition.DiscAcquireSpecificQuantityAndRarity,
+                (int) getDiscs().values().stream().filter(GameDisc::isMaster).count(),
+                1, 
+                0
+            );
+        }
+        
+        // Check if we need to send handbook update to player
+        if (this.updateDiscHandbook) {
+            this.updateDiscHandbook = false;
+            this.getPlayer().addNextPackage(
+                NetMsgId.handbook_change_notify,
+                this.getPlayer().getCharacters().getDiscHandbook());
+        }
     }
     
     // Database

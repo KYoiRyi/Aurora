@@ -7,8 +7,8 @@ import emu.nebula.game.character.GameCharacter;
 import emu.nebula.game.character.GameDisc;
 import emu.nebula.game.player.Player;
 import emu.nebula.util.Utils;
+import it.unimi.dsi.fastutil.ints.Int2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import lombok.Getter;
@@ -53,6 +53,9 @@ public class CommandArgs {
                     } else if (arg.startsWith("lv")) { // Level
                         this.level = Utils.parseSafeInt(arg.substring(2));
                         it.remove();
+                    } else if (arg.startsWith("lvl")) { // Level
+                        this.level = Utils.parseSafeInt(arg.substring(3));
+                        it.remove();
                     } else if (arg.startsWith("a")) { // Advance
                         this.advance = Utils.parseSafeInt(arg.substring(1));
                         it.remove();
@@ -76,7 +79,7 @@ public class CommandArgs {
                         int key = Integer.parseInt(split[0]);
                         int value = Integer.parseInt(split[1]);
                         
-                        if (this.map == null) this.map = new Int2IntOpenHashMap();
+                        if (this.map == null) this.map = new Int2IntLinkedOpenHashMap();
                         this.map.put(key, value);
                         
                         it.remove();

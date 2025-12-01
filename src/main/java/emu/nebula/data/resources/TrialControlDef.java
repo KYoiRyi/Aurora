@@ -2,18 +2,14 @@ package emu.nebula.data.resources;
 
 import emu.nebula.data.BaseDef;
 import emu.nebula.data.ResourceType;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
 
 @Getter
-@ResourceType(name = "Potential.json")
-public class PotentialDef extends BaseDef {
+@ResourceType(name = "TrialControl.json")
+public class TrialControlDef extends BaseDef {
     private int Id;
-    private int CharId;
-    private int Build;
-    private int MaxLevel;
-    private int[] BuildScore;
-    
-    private String BriefDesc;
+    private IntOpenHashSet GroupIds;
     
     @Override
     public int getId() {

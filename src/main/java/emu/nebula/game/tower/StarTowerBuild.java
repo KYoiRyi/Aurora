@@ -1,12 +1,17 @@
 package emu.nebula.game.tower;
 
+import java.util.List;
+
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Indexed;
 import emu.nebula.Nebula;
 import emu.nebula.data.GameData;
 import emu.nebula.database.GameDatabaseObject;
+import emu.nebula.game.character.GameCharacter;
+import emu.nebula.game.character.GameDisc;
 import emu.nebula.game.inventory.ItemParamMap;
+import emu.nebula.game.player.Player;
 import emu.nebula.proto.Public.ItemTpl;
 import emu.nebula.proto.PublicStarTower.BuildPotential;
 import emu.nebula.proto.PublicStarTower.StarTowerBuildBrief;
@@ -42,18 +47,23 @@ public class StarTowerBuild implements GameDatabaseObject {
         
     }
     
-    public StarTowerBuild(StarTowerGame game) {
+    public StarTowerBuild(Player player) {
         this.uid = Snowflake.newUid();
-        this.playerUid = game.getPlayer().getUid();
+        this.playerUid = player.getUid();
         this.name = "";
         this.charPots = new ItemParamMap();
         this.potentials = new ItemParamMap();
         this.subNoteSkills = new ItemParamMap();
+    }
+    
+    public StarTowerBuild(StarTowerGame game) {
+        // Initialize basic variables
+        this(game.getPlayer());
         
         // Characters
         this.charIds = game.getChars().stream()
-                .filter(d -> d.getId() > 0)
-                .mapToInt(d -> d.getId())
+                .filter(c -> c.getId() > 0)
+                .mapToInt(c -> c.getId())
                 .toArray();
         
         // Discs
@@ -85,7 +95,19 @@ public class StarTowerBuild implements GameDatabaseObject {
         }
         
         // Caclulate record score and cache it
-        this.score = this.calculateScore();
+        this.calculateScore();
+    }
+    
+    public void setChars(List<GameCharacter> characters) {
+        this.charIds = characters.stream()
+                .mapToInt(c -> c.getCharId())
+                .toArray();
+    }
+    
+    public void setDiscs(List<GameDisc> discs) {
+        this.discIds = discs.stream()
+                .mapToInt(d -> d.getDiscId())
+                .toArray();
     }
 
     public void setName(String newName) {
@@ -109,9 +131,9 @@ public class StarTowerBuild implements GameDatabaseObject {
     
     // Score
     
-    private int calculateScore() {
-        // Init score
-        int score = 0;
+    public int calculateScore() {
+        // Clear score
+        this.score = 0;
         
         // Potentials
         for (var potential : this.getPotentials().int2IntEntrySet()) {
@@ -119,16 +141,16 @@ public class StarTowerBuild implements GameDatabaseObject {
             if (data == null) continue;
             
             int index = potential.getIntValue() - 1;
-            score += data.getBuildScore()[index];
+            this.score += data.getBuildScore()[index];
         }
         
         // Sub note skills
         for (var item : this.getSubNoteSkills()) {
-            score += item.getIntValue() * 15;
+            this.score += item.getIntValue() * 15;
         }
         
         // Complete
-        return score;
+        return this.score;
     }
     
     // Proto

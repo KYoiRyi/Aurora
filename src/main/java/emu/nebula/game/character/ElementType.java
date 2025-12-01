@@ -7,10 +7,10 @@ import lombok.Getter;
 @Getter
 public enum ElementType {
     INHERIT     (0),
-    WIND        (1, 90020),
+    AQUA        (1, 90018),
     FIRE        (2, 90019),
     EARTH       (3, 90021),
-    AQUA        (4, 90018),
+    WIND        (4, 90020),
     LIGHT       (5, 90022),
     DARK        (6, 90023),
     NONE        (7);

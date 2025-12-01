@@ -118,6 +118,10 @@ public class GameCharacter implements GameDatabaseObject {
         }
     }
     
+    public boolean isMaster() {
+        return this.getData().getGrade() == 1;
+    }
+    
     public void setLevel(int level) {
         this.level = level;
     }
@@ -187,7 +191,7 @@ public class GameCharacter implements GameDatabaseObject {
         // Check if we leveled up
         if (this.level > oldLevel) {
             // Trigger quest
-            this.getPlayer().triggerQuest(QuestCondition.CharacterUpTotal, this.level - oldLevel);
+            this.getPlayer().trigger(QuestCondition.CharacterUpTotal, this.level - oldLevel);
         }
         
         // Save to database
@@ -272,6 +276,9 @@ public class GameCharacter implements GameDatabaseObject {
         
         // Save to database
         this.save();
+        
+        // Trigger quest/achievement
+        this.getPlayer().trigger(AchievementCondition.CharacterAdvanceTotal, 1);
         
         // Success
         return changes.setSuccess(true);
@@ -461,8 +468,7 @@ public class GameCharacter implements GameDatabaseObject {
         this.addAffinityExp(exp);
         
         // Trigger quest/achievement
-        this.getPlayer().triggerQuest(QuestCondition.GiftGiveTotal, count);
-        this.getPlayer().triggerAchievement(AchievementCondition.GiftGiveTotal, count);
+        this.getPlayer().trigger(QuestCondition.GiftGiveTotal, count);
         
         // Remove items
         var change = this.getPlayer().getInventory().removeItems(items);

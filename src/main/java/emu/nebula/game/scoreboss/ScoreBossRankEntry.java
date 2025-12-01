@@ -60,9 +60,15 @@ public class ScoreBossRankEntry implements GameDatabaseObject {
         this.honor = player.getHonor();
     }
     
-    public void settle(Player player, StarTowerBuild build, int level, int stars, int score) {
+    public void settle(Player player, StarTowerBuild build, int controlId, int level, int stars, int score) {
         // Update player data
         this.update(player);
+        
+        // Reset score entry if control id doesn't match
+        if (this.controlId != controlId) {
+            this.controlId = controlId;
+            this.getTeams().clear();
+        }
         
         // Set team entry
         var team = new ScoreBossTeamEntry(player, build, stars, score);

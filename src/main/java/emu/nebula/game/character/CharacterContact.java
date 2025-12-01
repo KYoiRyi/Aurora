@@ -8,7 +8,6 @@ import emu.nebula.Nebula;
 import emu.nebula.data.resources.ChatDef;
 import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.player.PlayerChangeInfo;
-import emu.nebula.game.quest.QuestCondition;
 import emu.nebula.net.NetMsgId;
 import emu.nebula.proto.Public.Contacts;
 import emu.nebula.proto.Public.UI32;
@@ -128,7 +127,7 @@ public class CharacterContact {
         }
         
         // Trigger quest/achievement
-        this.getCharacter().getPlayer().triggerAchievement(AchievementCondition.ChatTotal, 1);
+        this.getCharacter().getPlayer().trigger(AchievementCondition.ChatTotal, 1);
         
         // Success
         return change.setSuccess(true);

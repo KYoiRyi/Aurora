@@ -228,7 +228,7 @@ public class StarTowerGame {
     }
 
     public int levelUp(int picks) {
-        if (this.teamExp >= this.nextLevelExp) {
+        if (this.teamExp >= this.nextLevelExp && this.nextLevelExp != Integer.MAX_VALUE) {
             // Level up
             this.teamLevel++;
 
@@ -238,8 +238,13 @@ public class StarTowerGame {
             // Subtract target exp
             this.teamExp = this.teamExp - this.nextLevelExp;
 
-            // Update next level exp 
-            this.nextLevelExp = GameData.getStarTowerTeamExpDataTable().get(this.teamLevel + 1).getNeedExp();
+            // Update next level exp
+            var teamExpData = GameData.getStarTowerTeamExpDataTable().get(this.teamLevel + 1);
+            if (teamExpData != null) {
+                this.nextLevelExp = teamExpData.getNeedExp();
+            } else {
+                this.nextLevelExp = Integer.MAX_VALUE;
+            }
             
             // Re-check and continue processing if we still got exp
             if (this.teamExp > 0) {
@@ -670,9 +675,9 @@ public class StarTowerGame {
             var hawkerCase = new StarTowerCase(CaseType.Hawker);
             
             // TODO
-            hawkerCase.addGoods(new StarTowerShopGoods(1, 1, 200));
-            hawkerCase.addGoods(new StarTowerShopGoods(1, 1, 200));
-            hawkerCase.addGoods(new StarTowerShopGoods(1, 1, 200));
+            for (int i = 0; i < 8; i++) {
+                hawkerCase.addGoods(new StarTowerShopGoods(1, 1, 200));
+            }
             
             this.addCase(room.getMutableCases(), hawkerCase);
         }

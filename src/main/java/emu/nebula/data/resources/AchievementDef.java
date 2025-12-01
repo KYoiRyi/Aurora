@@ -20,8 +20,8 @@ public class AchievementDef extends BaseDef {
     private int Qty1;
     
     // Custom params
-    private transient int param1 = -1;
-    private transient int param2 = -1;
+    private transient int param1; // -1 == any, 0 = no param, 1+ = param required
+    private transient int param2; // -1 == any, 0 = no param, 1+ = param required
     
     @Override
     public int getId() {
@@ -33,12 +33,30 @@ public class AchievementDef extends BaseDef {
         this.param2 = param2;
     }
 
-    public boolean hasParam1() {
-        return this.param1 >= 0;
+    /**
+     * Checks if this achievement requires params to match
+     */
+    public boolean hasParam1(int param) {
+        if (this.param1 < 0) {
+            return false;
+        } else if (this.param1 == 0) {
+            return param != 0;
+        } else {
+            return true;
+        }
     }
     
-    public boolean hasParam2() {
-        return this.param2 >= 0;
+    /**
+     * Checks if this achievement requires params to match
+     */
+    public boolean hasParam2(int param) {
+        if (this.param2 < 0) {
+            return false;
+        } else if (this.param2 == 0) {
+            return param != 0;
+        } else {
+            return true;
+        }
     }
 
     @Override

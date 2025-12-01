@@ -2,6 +2,7 @@ package emu.nebula.game.infinitytower;
 
 import emu.nebula.data.GameData;
 import emu.nebula.data.resources.InfinityTowerLevelDef;
+import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.player.Player;
 import emu.nebula.game.player.PlayerChangeInfo;
 import emu.nebula.game.player.PlayerManager;
@@ -74,6 +75,9 @@ public class InfinityTowerManager extends PlayerManager {
         
         // Log in player progress
         this.getPlayer().getProgress().addInfinityArenaLog(this.getLevelId());
+        
+        // Trigger achievement
+        this.getPlayer().trigger(AchievementCondition.InfinityTowerClearSpecificFloor, 10, this.getLevelId(), 0);
         
         // Success
         return change.setSuccess(true);

@@ -193,18 +193,7 @@ public class GameSession {
         }
 
         // Check handbook states
-        if (this.getPlayer().getCharacters().isUpdateCharHandbook()) {
-            getPlayer().getCharacters().setUpdateCharHandbook(false);
-            getPlayer().addNextPackage(
-                    NetMsgId.handbook_change_notify,
-                    this.getPlayer().getCharacters().getCharacterHandbook());
-        }
-        if (this.getPlayer().getCharacters().isUpdateDiscHandbook()) {
-            getPlayer().getCharacters().setUpdateDiscHandbook(false);
-            getPlayer().addNextPackage(
-                    NetMsgId.handbook_change_notify,
-                    this.getPlayer().getCharacters().getDiscHandbook());
-        }
+        this.getPlayer().getCharacters().checkPlayerState();
     }
 
     private ProtoMessage<?> addNextPackages(ProtoMessage<?> proto) {

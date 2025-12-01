@@ -14,6 +14,7 @@ import emu.nebula.database.GameDatabaseObject;
 import emu.nebula.game.account.Account;
 import emu.nebula.game.achievement.AchievementCondition;
 import emu.nebula.game.achievement.AchievementManager;
+import emu.nebula.game.activity.ActivityManager;
 import emu.nebula.game.agent.AgentManager;
 import emu.nebula.game.battlepass.BattlePassManager;
 import emu.nebula.game.character.CharacterStorage;
@@ -108,6 +109,7 @@ public class Player implements GameDatabaseObject {
     private transient QuestManager questManager;
     private transient AchievementManager achievementManager;
     private transient AgentManager agentManager;
+    private transient ActivityManager activityManager;
     
     // Extra
     private transient Stack<NetMsgPacket> nextPackages;
@@ -214,7 +216,7 @@ public class Player implements GameDatabaseObject {
         Nebula.getGameDatabase().update(this, this.getUid(), "level", this.level);
         
         // Trigger achievement
-        this.triggerAchievement(AchievementCondition.WorldClassSpecific, this.getLevel());
+        this.trigger(AchievementCondition.WorldClassSpecific, this.getLevel());
     }
     
     public void setExp(int exp) {
@@ -510,7 +512,7 @@ public class Player implements GameDatabaseObject {
             );
             
             // Trigger achievement
-            this.triggerAchievement(AchievementCondition.WorldClassSpecific, this.getLevel());
+            this.trigger(AchievementCondition.WorldClassSpecific, this.getLevel());
         }
         
         // Calculate changes
@@ -563,7 +565,7 @@ public class Player implements GameDatabaseObject {
         change = modifyEnergy(-amount, change);
         
         // Trigger quest
-        this.triggerQuest(QuestCondition.EnergyDeplete, amount);
+        this.trigger(QuestCondition.EnergyDeplete, amount);
         
         // Complete
         return change;
@@ -615,8 +617,7 @@ public class Player implements GameDatabaseObject {
         this.resetDailies(hasWeekChanged);
         
         // Trigger quest/achievement login
-        this.triggerQuest(QuestCondition.LoginTotal, 1);
-        this.triggerAchievement(AchievementCondition.LoginTotal, 1);
+        this.trigger(QuestCondition.LoginTotal, 1);
         
         // Update last epoch day
         this.lastEpochDay = Nebula.getGameContext().getEpochDays();
@@ -631,21 +632,26 @@ public class Player implements GameDatabaseObject {
     
     // Trigger quests + achievements
     
-    public void triggerQuest(QuestCondition condition, int progress) {
-        this.triggerQuest(condition, progress, 0);
-    }
-    
-    public void triggerQuest(QuestCondition condition, int progress, int param) {
-        this.getQuestManager().trigger(condition, progress, param);
-        this.getBattlePassManager().getBattlePass().trigger(condition, progress, param);
-    }
-    
-    public void triggerAchievement(AchievementCondition condition, int progress) {
-        this.getAchievementManager().trigger(condition, progress, 0, 0);
-    }
-    
-    public void triggerAchievement(AchievementCondition condition, int progress, int param1, int param2) {
+    public void trigger(int condition, int progress, int param1, int param2) {
+        this.getQuestManager().trigger(condition, progress, param1, param2);
+        this.getBattlePassManager().getBattlePass().trigger(condition, progress, param1, param2);
         this.getAchievementManager().trigger(condition, progress, param1, param2);
+    }
+    
+    public void trigger(QuestCondition condition, int progress) {
+        this.trigger(condition.getValue(), progress, 0, 0);
+    }
+    
+    public void trigger(QuestCondition condition, int progress, int param1) {
+        this.trigger(condition.getValue(), progress, param1, 0);
+    }
+    
+    public void trigger(AchievementCondition condition, int progress) {
+        this.trigger(condition.getValue(), progress, 0, 0);
+    }
+    
+    public void trigger(AchievementCondition condition, int progress, int param1, int param2) {
+        this.trigger(condition.getValue(), progress, param1, param2);
     }
     
     // Login
@@ -691,12 +697,16 @@ public class Player implements GameDatabaseObject {
         this.questManager = this.loadManagerFromDatabase(QuestManager.class);
         this.achievementManager = this.loadManagerFromDatabase(AchievementManager.class);
         this.agentManager = this.loadManagerFromDatabase(AgentManager.class);
+        this.activityManager = this.loadManagerFromDatabase(ActivityManager.class);
         
         // Database fixes
         if (this.showChars == null) {
             this.showChars = new int[3];
             this.save();
         }
+        
+        // Init activities
+        this.getActivityManager().init();
         
         // Load complete
         this.loaded = true;
@@ -903,6 +913,11 @@ public class Player implements GameDatabaseObject {
         
         for (var agent : getAgentManager().getAgents().values()) {
             agentProto.addInfos(agent.toProto());
+        }
+        
+        // Activities
+        for (var activity : getActivityManager().getActivities().values()) {
+            proto.addActivities(activity.toProto());
         }
         
         // Complete
